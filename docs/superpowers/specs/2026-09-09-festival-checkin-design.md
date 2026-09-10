@@ -8,7 +8,7 @@ L'application est conçue pour être réutilisable par **plusieurs festivals dif
 
 ## Stack technique
 
-- **Django** (dernière version stable, 5.x), Python 3.12+.
+- **Django 6.1.1**, Python 3.14.
 - Une seule app Django principale (`checkin`) — le projet ne justifie pas un découpage en plusieurs apps.
 - **Base de données SQLite** par défaut. Suffisant pour ce volume de données, aucune dépendance externe à installer. Le mode d'hébergement définitif (serveur local sur place ou hébergement cloud) n'est pas encore arrêté ; la configuration Django reste simple et ne présuppose pas l'un ou l'autre.
 - **Frontend** : templates Django + CSS responsive mobile-first (gros boutons tactiles, contrastes marqués pour une lisibilité en extérieur) + JavaScript vanilla (fetch API) pour l'interactivité (retour instantané après un clic, bouton « annuler », auto-refresh des statistiques). Pas de framework JS.
