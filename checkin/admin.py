@@ -1,3 +1,9 @@
 from django.contrib import admin
 
-# Register your models here.
+from checkin.models import Festival
+
+
+@admin.register(Festival)
+class FestivalAdmin(admin.ModelAdmin):
+    list_display = ["nom", "slug"]
+    prepopulated_fields = {"slug": ["nom"]}
