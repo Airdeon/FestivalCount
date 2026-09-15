@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 
-from checkin.models import Edition, Festival, Membership
+from checkin.models import Edition, Festival, Membership, Origin
 
 
 @pytest.mark.django_db
@@ -75,3 +75,19 @@ def test_membership_is_unique_per_user_and_festival():
     Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_BENEVOLE)
     with pytest.raises(IntegrityError):
         Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_ORGANISATEUR)
+
+
+@pytest.mark.django_db
+def test_origin_str_includes_code_and_nom():
+    origin = Origin.objects.create(
+        code="75", nom="Paris", type=Origin.TYPE_DEPARTEMENT, groupe="60–79", ordre_affichage=1
+    )
+    assert "75" in str(origin)
+    assert "Paris" in str(origin)
+
+
+@pytest.mark.django_db
+def test_origin_code_is_unique():
+    Origin.objects.create(code="75", nom="Paris", type=Origin.TYPE_DEPARTEMENT, groupe="60–79", ordre_affichage=1)
+    with pytest.raises(Exception):
+        Origin.objects.create(code="75", nom="Doublon", type=Origin.TYPE_DEPARTEMENT, groupe="60–79", ordre_affichage=2)

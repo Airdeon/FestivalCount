@@ -51,3 +51,28 @@ class Membership(models.Model):
 
     def __str__(self):
         return f"{self.user.username} — {self.festival.nom} ({self.get_role_display()})"
+
+
+class Origin(models.Model):
+    TYPE_DEPARTEMENT = "departement"
+    TYPE_DOM_TOM = "dom_tom"
+    TYPE_PAYS = "pays"
+    TYPE_AUTRE = "autre"
+    TYPE_CHOICES = [
+        (TYPE_DEPARTEMENT, "Département"),
+        (TYPE_DOM_TOM, "DOM-TOM"),
+        (TYPE_PAYS, "Pays"),
+        (TYPE_AUTRE, "Autre"),
+    ]
+
+    code = models.CharField(max_length=10, unique=True)
+    nom = models.CharField(max_length=100)
+    type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    groupe = models.CharField(max_length=50)
+    ordre_affichage = models.IntegerField()
+
+    class Meta:
+        ordering = ["ordre_affichage"]
+
+    def __str__(self):
+        return f"{self.code} — {self.nom}"
