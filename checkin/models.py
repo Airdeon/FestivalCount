@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -29,3 +30,24 @@ class Edition(models.Model):
     def est_active(self):
         today = timezone.localdate()
         return self.date_debut <= today <= self.date_fin
+
+
+class Membership(models.Model):
+    ROLE_ORGANISATEUR = "organisateur"
+    ROLE_BENEVOLE = "benevole"
+    ROLE_CHOICES = [
+        (ROLE_ORGANISATEUR, "Organisateur"),
+        (ROLE_BENEVOLE, "Bénévole"),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="memberships")
+    festival = models.ForeignKey(Festival, on_delete=models.CASCADE, related_name="memberships")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "festival"], name="unique_membership_per_user_festival"),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} — {self.festival.nom} ({self.get_role_display()})"

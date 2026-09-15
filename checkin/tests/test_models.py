@@ -1,8 +1,10 @@
 import datetime
 
 import pytest
+from django.contrib.auth.models import User
+from django.db import IntegrityError
 
-from checkin.models import Edition, Festival
+from checkin.models import Edition, Festival, Membership
 
 
 @pytest.mark.django_db
@@ -55,3 +57,21 @@ def test_edition_est_active_false_when_dates_are_in_the_future():
         date_fin=today + datetime.timedelta(days=10),
     )
     assert edition.est_active is False
+
+
+@pytest.mark.django_db
+def test_membership_str_includes_role_label():
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    user = User.objects.create_user(username="alice", password="pass12345")
+    membership = Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_ORGANISATEUR)
+    assert "alice" in str(membership)
+    assert "Festival A" in str(membership)
+
+
+@pytest.mark.django_db
+def test_membership_is_unique_per_user_and_festival():
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    user = User.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_BENEVOLE)
+    with pytest.raises(IntegrityError):
+        Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_ORGANISATEUR)
