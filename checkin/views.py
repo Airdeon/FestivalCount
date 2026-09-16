@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 from checkin.models import Membership, Origin, Visit
 from checkin.permissions import membership_required
 from checkin.selectors import get_active_edition
+from checkin.stats import get_hourly_evolution, get_key_figures, get_ranking
 
 
 @login_required
@@ -64,3 +65,23 @@ def visit_cancel(request, festival_slug, visit_id):
         return JsonResponse({"error": "Visite introuvable."}, status=404)
     visit.delete()
     return JsonResponse({"deleted": True})
+
+
+@membership_required(roles=[Membership.ROLE_ORGANISATEUR])
+def stats(request, festival_slug):
+    editions = request.festival.editions.all()
+    active_edition = get_active_edition(request.festival)
+
+    edition_id = request.GET.get("edition")
+    edition = editions.filter(id=edition_id).first() if edition_id else active_edition
+    if edition is None:
+        edition = editions.first()
+
+    context = {"editions": editions, "selected_edition": edition}
+    if edition is not None:
+        context["key_figures"] = get_key_figures(edition)
+        context["ranking"] = get_ranking(edition)
+        context["hourly_evolution"] = get_hourly_evolution(edition)
+        context["is_current_edition"] = edition == active_edition
+
+    return render(request, "checkin/stats.html", context)

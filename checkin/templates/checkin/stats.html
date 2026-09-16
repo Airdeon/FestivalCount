@@ -1,0 +1,39 @@
+{% extends "checkin/base.html" %}
+{% load static %}
+{% block title %}Statistiques — {{ request.festival.nom }}{% endblock %}
+{% block content %}
+<h1>{{ request.festival.nom }} — Statistiques</h1>
+
+{% if not editions %}
+<p>Aucune édition pour ce festival.</p>
+{% else %}
+<form method="get" id="edition-selector-form">
+    <label for="edition-selector">Édition :</label>
+    <select name="edition" id="edition-selector" onchange="this.form.submit()">
+        {% for e in editions %}
+        <option value="{{ e.id }}" {% if selected_edition and e.id == selected_edition.id %}selected{% endif %}>{{ e.nom }}</option>
+        {% endfor %}
+    </select>
+</form>
+
+{% if selected_edition %}
+<section id="key-figures"
+         data-total="{{ key_figures.total_visiteurs }}"
+         data-departements="{{ key_figures.nombre_departements }}"
+         data-pays="{{ key_figures.nombre_pays }}">
+    <p>Total visiteurs : <strong id="total-visiteurs">{{ key_figures.total_visiteurs }}</strong></p>
+    <p>Départements représentés : <strong id="total-departements">{{ key_figures.nombre_departements }}</strong></p>
+    <p>Pays représentés : <strong id="total-pays">{{ key_figures.nombre_pays }}</strong></p>
+</section>
+
+<table id="ranking-table">
+    <thead><tr><th>Origine</th><th>Visiteurs</th></tr></thead>
+    <tbody>
+        {% for row in ranking %}
+        <tr><td>{{ row.origin__code }} — {{ row.origin__nom }}</td><td>{{ row.nombre }}</td></tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endif %}
+{% endif %}
+{% endblock %}

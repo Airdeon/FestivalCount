@@ -16,4 +16,5 @@ urlpatterns = [
         views.visit_cancel,
         name="visit_cancel",
     ),
+    path("f/<slug:festival_slug>/stats/", views.stats, name="stats"),
 ]
