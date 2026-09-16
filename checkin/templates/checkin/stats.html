@@ -20,7 +20,10 @@
 <section id="key-figures"
          data-total="{{ key_figures.total_visiteurs }}"
          data-departements="{{ key_figures.nombre_departements }}"
-         data-pays="{{ key_figures.nombre_pays }}">
+         data-pays="{{ key_figures.nombre_pays }}"
+         data-stats-data-url="{% url 'checkin:stats_data' festival_slug=request.festival.slug %}"
+         data-edition-id="{{ selected_edition.id }}"
+         data-is-current="{{ is_current_edition|yesno:'true,false' }}">
     <p>Total visiteurs : <strong id="total-visiteurs">{{ key_figures.total_visiteurs }}</strong></p>
     <p>Départements représentés : <strong id="total-departements">{{ key_figures.nombre_departements }}</strong></p>
     <p>Pays représentés : <strong id="total-pays">{{ key_figures.nombre_pays }}</strong></p>

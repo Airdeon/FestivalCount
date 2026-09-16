@@ -85,3 +85,17 @@ def stats(request, festival_slug):
         context["is_current_edition"] = edition == active_edition
 
     return render(request, "checkin/stats.html", context)
+
+
+@membership_required(roles=[Membership.ROLE_ORGANISATEUR])
+def stats_data(request, festival_slug):
+    edition_id = request.GET.get("edition")
+    edition = request.festival.editions.filter(id=edition_id).first()
+    if edition is None:
+        return JsonResponse({"error": "Édition introuvable."}, status=404)
+
+    return JsonResponse({
+        "key_figures": get_key_figures(edition),
+        "ranking": get_ranking(edition),
+        "hourly_evolution": get_hourly_evolution(edition),
+    })
