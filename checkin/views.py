@@ -1,7 +1,9 @@
 import json
 
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
@@ -12,6 +14,22 @@ from checkin.models import Membership, Origin, Visit
 from checkin.permissions import membership_required
 from checkin.selectors import get_active_edition
 from checkin.stats import get_hourly_evolution, get_key_figures, get_ranking
+
+
+def signup(request):
+    if request.user.is_authenticated:
+        return redirect("checkin:select_festival")
+
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("checkin:select_festival")
+    else:
+        form = UserCreationForm()
+
+    return render(request, "checkin/signup.html", {"form": form})
 
 
 @login_required

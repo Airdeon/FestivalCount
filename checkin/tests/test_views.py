@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+from django.contrib.auth.models import User
 from django.urls import reverse
 
 from checkin.models import Edition, Festival, Membership, Origin
@@ -139,3 +140,38 @@ def test_login_page_does_not_show_logout_button(client):
     response = client.get(reverse("checkin:login"))
     assert response.status_code == 200
     assert 'action="/logout/"' not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_signup_creates_user_and_logs_in(client):
+    response = client.post(
+        reverse("checkin:signup"),
+        {"username": "newuser", "password1": "un-mot-de-passe-solide-42", "password2": "un-mot-de-passe-solide-42"},
+    )
+
+    assert response.status_code == 302
+    assert User.objects.filter(username="newuser").exists()
+    assert "_auth_user_id" in client.session
+
+
+@pytest.mark.django_db
+def test_signup_rejects_duplicate_username(client, django_user_model):
+    django_user_model.objects.create_user(username="bob", password="pass12345")
+
+    response = client.post(
+        reverse("checkin:signup"),
+        {"username": "bob", "password1": "un-mot-de-passe-solide-42", "password2": "un-mot-de-passe-solide-42"},
+    )
+
+    assert response.status_code == 200
+    assert User.objects.filter(username="bob").count() == 1
+
+
+@pytest.mark.django_db
+def test_signup_redirects_authenticated_user(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="pass12345")
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:signup"))
+
+    assert response.status_code == 302
