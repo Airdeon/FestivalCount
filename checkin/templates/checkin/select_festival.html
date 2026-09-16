@@ -1,0 +1,14 @@
+{% extends "checkin/base.html" %}
+{% block title %}Mes festivals — Festival Count{% endblock %}
+{% block content %}
+<h1>Mes festivals</h1>
+{% if memberships %}
+<ul class="festival-list">
+    {% for membership in memberships %}
+    <li>{{ membership.festival.nom }} — {{ membership.get_role_display }}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>Vous n'avez accès à aucun festival pour le moment. Contactez l'organisateur de votre festival.</p>
+{% endif %}
+{% endblock %}
