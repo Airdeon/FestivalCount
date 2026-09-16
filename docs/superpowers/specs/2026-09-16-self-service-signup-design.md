@@ -21,6 +21,8 @@ Les modèles `Festival`, `Edition`, `Membership`, `Origin` et `Visit` ne changen
 
 ## Inscription
 
+Réutilisation maximale des briques d'authentification fournies par Django plutôt que de les réécrire : `django.contrib.auth.views.LoginView`/`LogoutView` sont déjà en place depuis le début du projet et ne changent pas. Django ne fournit en revanche pas de vue d'inscription clé en main (`RegisterView` n'existe pas dans `django.contrib.auth.views` — c'est un choix délibéré du framework, l'inscription étant jugée trop spécifique à chaque projet) ; la brique réutilisable est `django.contrib.auth.forms.UserCreationForm`, qui gère la validation du nom d'utilisateur, du mot de passe et de sa confirmation via les `AUTH_PASSWORD_VALIDATORS` déjà configurés. Seule une vue fonctionnelle minimale (utilisant ce formulaire puis `django.contrib.auth.login()`) est écrite pour l'assembler.
+
 URL : `/inscription/` (nom `checkin:signup`), accessible sans connexion.
 
 Formulaire basé sur `django.contrib.auth.forms.UserCreationForm` (nom d'utilisateur + mot de passe + confirmation, validé par les `AUTH_PASSWORD_VALIDATORS` déjà configurés). À la soumission valide : création du `User`, connexion automatique, redirection vers `checkin:select_festival`. La page de connexion (`/login/`) affiche un lien vers cette page. Un utilisateur déjà connecté visitant `/inscription/` est directement redirigé vers `checkin:select_festival` (la page n'a pas de sens pour lui).
