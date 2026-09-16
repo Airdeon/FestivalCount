@@ -76,3 +76,17 @@ class Origin(models.Model):
 
     def __str__(self):
         return f"{self.code} — {self.nom}"
+
+
+class Visit(models.Model):
+    edition = models.ForeignKey(Edition, on_delete=models.CASCADE, related_name="visits")
+    origin = models.ForeignKey(Origin, on_delete=models.PROTECT, related_name="visits")
+    precision_libre = models.CharField(max_length=100, blank=True, default="")
+    horodatage = models.DateTimeField(auto_now_add=True)
+    enregistre_par = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="visits")
+
+    class Meta:
+        ordering = ["-horodatage"]
+
+    def __str__(self):
+        return f"{self.origin.nom} — {self.horodatage:%d/%m/%Y %H:%M}"
