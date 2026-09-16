@@ -1,10 +1,12 @@
 import json
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from checkin.forms import EditionForm
 from checkin.models import Membership, Origin, Visit
 from checkin.permissions import membership_required
 from checkin.selectors import get_active_edition
@@ -103,3 +105,21 @@ def stats_data(request, festival_slug):
         "ranking": get_ranking(edition),
         "hourly_evolution": get_hourly_evolution(edition),
     })
+
+
+@membership_required(roles=[Membership.ROLE_ORGANISATEUR])
+def edition_list(request, festival_slug):
+    editions = request.festival.editions.all()
+
+    if request.method == "POST":
+        form = EditionForm(request.POST)
+        if form.is_valid():
+            edition = form.save(commit=False)
+            edition.festival = request.festival
+            edition.save()
+            messages.success(request, "Édition créée avec succès.")
+            return redirect("checkin:edition_list", festival_slug=festival_slug)
+    else:
+        form = EditionForm()
+
+    return render(request, "checkin/edition_list.html", {"editions": editions, "form": form})

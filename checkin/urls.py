@@ -18,4 +18,5 @@ urlpatterns = [
     ),
     path("f/<slug:festival_slug>/stats/", views.stats, name="stats"),
     path("f/<slug:festival_slug>/stats/data/", views.stats_data, name="stats_data"),
+    path("f/<slug:festival_slug>/editions/", views.edition_list, name="edition_list"),
 ]
