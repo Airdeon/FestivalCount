@@ -1,0 +1,5 @@
+france-departements.svg
+
+Source : @svg-maps/france.departments (Victor Cazanave)
+https://github.com/VictorCazanave/svg-maps/tree/master/packages/france.departments
+Licence : CC-BY-4.0 (Creative Commons Attribution 4.0 International)

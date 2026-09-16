@@ -39,12 +39,13 @@
 </table>
 <canvas id="ranking-chart" height="300"></canvas>
 <canvas id="evolution-chart" height="300"></canvas>
-<div id="map-container"></div>
+<div id="map-container" data-svg-url="{% static 'checkin/svg/france-departements.svg' %}"></div>
 
 {{ ranking|json_script:"ranking-data" }}
 {{ hourly_evolution|json_script:"evolution-data" }}
 
 <script src="{% static 'checkin/js/vendor/chart.umd.min.js' %}"></script>
+<script src="{% static 'checkin/js/map.js' %}" defer></script>
 <script src="{% static 'checkin/js/stats.js' %}" defer></script>
 {% endif %}
 {% endif %}
