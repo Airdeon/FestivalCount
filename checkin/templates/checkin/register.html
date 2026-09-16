@@ -1,0 +1,39 @@
+{% extends "checkin/base.html" %}
+{% load static %}
+{% block title %}Enregistrement — {{ request.festival.nom }}{% endblock %}
+{% block content %}
+<h1>{{ request.festival.nom }}</h1>
+
+{% if not edition %}
+<p class="no-active-edition">Aucune édition en cours actuellement.</p>
+{% else %}
+<div id="confirmation" class="confirmation" hidden>
+    <span id="confirmation-text"></span>
+    <button type="button" id="cancel-button">Annuler</button>
+</div>
+<div id="error-message" class="error-message" hidden></div>
+
+<section id="screen-groups" data-edition-id="{{ edition.id }}">
+    <h2>Choisissez un groupe</h2>
+    <div class="button-grid" id="group-buttons"></div>
+</section>
+
+<section id="screen-origins" hidden>
+    <button type="button" id="back-button">← Retour</button>
+    <h2 id="selected-group-title"></h2>
+    <div class="button-grid" id="origin-buttons"></div>
+    <div id="autre-form" hidden>
+        <input type="text" id="autre-input" placeholder="Précisez le pays">
+        <button type="button" id="autre-submit">Valider</button>
+    </div>
+</section>
+
+<script id="origins-data" type="application/json">
+[
+    {% for origin in origins %}
+    {"code": "{{ origin.code }}", "nom": "{{ origin.nom|escapejs }}", "groupe": "{{ origin.groupe|escapejs }}", "type": "{{ origin.type }}"}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+]
+</script>
+{% endif %}
+{% endblock %}
