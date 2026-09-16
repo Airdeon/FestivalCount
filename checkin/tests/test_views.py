@@ -13,10 +13,12 @@ def test_select_festival_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_select_festival_lists_user_memberships(client, django_user_model):
+def test_select_festival_lists_user_memberships_when_several(client, django_user_model):
     user = django_user_model.objects.create_user(username="alice", password="pass12345")
-    festival = Festival.objects.create(nom="Festival Photo de Tignecourt", slug="festival-photo-tignecourt")
-    Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_BENEVOLE)
+    festival_a = Festival.objects.create(nom="Festival Photo de Tignecourt", slug="festival-photo-tignecourt")
+    festival_b = Festival.objects.create(nom="Festival B", slug="festival-b")
+    Membership.objects.create(user=user, festival=festival_a, role=Membership.ROLE_BENEVOLE)
+    Membership.objects.create(user=user, festival=festival_b, role=Membership.ROLE_BENEVOLE)
     client.login(username="alice", password="pass12345")
 
     response = client.get(reverse("checkin:select_festival"))
@@ -73,3 +75,46 @@ def test_register_denies_access_without_membership(client, django_user_model):
     response = client.get(reverse("checkin:register", kwargs={"festival_slug": festival.slug}))
 
     assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_select_festival_redirects_when_single_membership_benevole(client, django_user_model):
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_BENEVOLE)
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:select_festival"))
+
+    assert response.status_code == 302
+    assert response.url == reverse("checkin:register", kwargs={"festival_slug": festival.slug})
+
+
+@pytest.mark.django_db
+def test_select_festival_redirects_when_single_membership_organisateur(client, django_user_model):
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_ORGANISATEUR)
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:select_festival"))
+
+    assert response.status_code == 302
+    assert response.url == reverse("checkin:stats", kwargs={"festival_slug": festival.slug})
+
+
+@pytest.mark.django_db
+def test_select_festival_lists_links_when_multiple_memberships(client, django_user_model):
+    festival_a = Festival.objects.create(nom="Festival A", slug="festival-a")
+    festival_b = Festival.objects.create(nom="Festival B", slug="festival-b")
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival_a, role=Membership.ROLE_BENEVOLE)
+    Membership.objects.create(user=user, festival=festival_b, role=Membership.ROLE_ORGANISATEUR)
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:select_festival"))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert reverse("checkin:register", kwargs={"festival_slug": festival_a.slug}) in content
+    assert reverse("checkin:stats", kwargs={"festival_slug": festival_b.slug}) in content

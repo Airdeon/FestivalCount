@@ -2,7 +2,7 @@ import json
 
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
 from checkin.models import Membership, Origin, Visit
@@ -14,6 +14,10 @@ from checkin.stats import get_hourly_evolution, get_key_figures, get_ranking
 @login_required
 def select_festival(request):
     memberships = Membership.objects.filter(user=request.user).select_related("festival")
+    if memberships.count() == 1:
+        membership = memberships.first()
+        target_view = "checkin:stats" if membership.role == Membership.ROLE_ORGANISATEUR else "checkin:register"
+        return redirect(target_view, festival_slug=membership.festival.slug)
     return render(request, "checkin/select_festival.html", {"memberships": memberships})
 
 

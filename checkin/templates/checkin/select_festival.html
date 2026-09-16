@@ -5,7 +5,11 @@
 {% if memberships %}
 <ul class="festival-list">
     {% for membership in memberships %}
-    <li>{{ membership.festival.nom }} — {{ membership.get_role_display }}</li>
+    <li>
+        <a href="{% if membership.role == 'organisateur' %}{% url 'checkin:stats' festival_slug=membership.festival.slug %}{% else %}{% url 'checkin:register' festival_slug=membership.festival.slug %}{% endif %}">
+            {{ membership.festival.nom }} — {{ membership.get_role_display }}
+        </a>
+    </li>
     {% endfor %}
 </ul>
 {% else %}
