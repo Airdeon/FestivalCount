@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 
 from checkin.models import Edition
 
@@ -19,3 +20,14 @@ class EditionForm(forms.ModelForm):
         if date_debut and date_fin and date_fin < date_debut:
             raise forms.ValidationError("La date de fin doit être postérieure ou égale à la date de début.")
         return cleaned_data
+
+
+class VolunteerCreationForm(forms.Form):
+    username = forms.CharField(max_length=150)
+    password = forms.CharField(widget=forms.PasswordInput)
+
+    def clean_username(self):
+        username = self.cleaned_data["username"]
+        if User.objects.filter(username=username).exists():
+            raise forms.ValidationError("Ce nom d'utilisateur existe déjà.")
+        return username

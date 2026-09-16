@@ -2,11 +2,12 @@ import json
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from checkin.forms import EditionForm
+from checkin.forms import EditionForm, VolunteerCreationForm
 from checkin.models import Membership, Origin, Visit
 from checkin.permissions import membership_required
 from checkin.selectors import get_active_edition
@@ -123,3 +124,37 @@ def edition_list(request, festival_slug):
         form = EditionForm()
 
     return render(request, "checkin/edition_list.html", {"editions": editions, "form": form})
+
+
+@membership_required(roles=[Membership.ROLE_ORGANISATEUR])
+def volunteer_list(request, festival_slug):
+    memberships = Membership.objects.filter(
+        festival=request.festival, role=Membership.ROLE_BENEVOLE
+    ).select_related("user")
+
+    if request.method == "POST":
+        form = VolunteerCreationForm(request.POST)
+        if form.is_valid():
+            user = User.objects.create_user(
+                username=form.cleaned_data["username"],
+                password=form.cleaned_data["password"],
+            )
+            Membership.objects.create(user=user, festival=request.festival, role=Membership.ROLE_BENEVOLE)
+            messages.success(request, "Compte bénévole créé avec succès.")
+            return redirect("checkin:volunteer_list", festival_slug=festival_slug)
+    else:
+        form = VolunteerCreationForm()
+
+    return render(request, "checkin/volunteer_list.html", {"memberships": memberships, "form": form})
+
+
+@require_POST
+@membership_required(roles=[Membership.ROLE_ORGANISATEUR])
+def volunteer_remove(request, festival_slug, membership_id):
+    membership = Membership.objects.filter(
+        id=membership_id, festival=request.festival, role=Membership.ROLE_BENEVOLE
+    ).first()
+    if membership is not None:
+        membership.delete()
+        messages.success(request, "Accès du bénévole retiré.")
+    return redirect("checkin:volunteer_list", festival_slug=festival_slug)

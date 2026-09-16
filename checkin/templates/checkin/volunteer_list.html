@@ -1,0 +1,24 @@
+{% extends "checkin/base.html" %}
+{% block title %}Bénévoles — {{ request.festival.nom }}{% endblock %}
+{% block content %}
+<h1>{{ request.festival.nom }} — Bénévoles</h1>
+
+<ul>
+    {% for membership in memberships %}
+    <li>
+        {{ membership.user.username }}
+        <form method="post" action="{% url 'checkin:volunteer_remove' festival_slug=request.festival.slug membership_id=membership.id %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit">Retirer l'accès</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+
+<h2>Créer un compte bénévole</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Créer</button>
+</form>
+{% endblock %}
