@@ -90,3 +90,17 @@ class Visit(models.Model):
 
     def __str__(self):
         return f"{self.origin.nom} — {self.horodatage:%d/%m/%Y %H:%M}"
+
+
+class MembershipRequest(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="membership_requests")
+    festival = models.ForeignKey(Festival, on_delete=models.CASCADE, related_name="membership_requests")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "festival"], name="unique_membership_request_per_user_festival"),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} → {self.festival.nom}"
