@@ -10,4 +10,5 @@ urlpatterns = [
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("festivals/", views.select_festival, name="select_festival"),
     path("f/<slug:festival_slug>/enregistrement/", views.register, name="register"),
+    path("f/<slug:festival_slug>/enregistrement/visites/", views.visit_create, name="visit_create"),
 ]

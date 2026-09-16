@@ -13,7 +13,7 @@
 </div>
 <div id="error-message" class="error-message" hidden></div>
 
-<section id="screen-groups" data-edition-id="{{ edition.id }}">
+<section id="screen-groups" data-edition-id="{{ edition.id }}" data-create-url="{% url 'checkin:visit_create' festival_slug=request.festival.slug %}">
     <h2>Choisissez un groupe</h2>
     <div class="button-grid" id="group-buttons"></div>
 </section>
