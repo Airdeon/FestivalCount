@@ -54,3 +54,13 @@ def visit_create(request, festival_slug):
     )
 
     return JsonResponse({"id": visit.id, "origin_nom": origin.nom}, status=201)
+
+
+@require_POST
+@membership_required()
+def visit_cancel(request, festival_slug, visit_id):
+    visit = Visit.objects.filter(id=visit_id, edition__festival=request.festival).first()
+    if visit is None:
+        return JsonResponse({"error": "Visite introuvable."}, status=404)
+    visit.delete()
+    return JsonResponse({"deleted": True})

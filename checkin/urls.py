@@ -11,4 +11,9 @@ urlpatterns = [
     path("festivals/", views.select_festival, name="select_festival"),
     path("f/<slug:festival_slug>/enregistrement/", views.register, name="register"),
     path("f/<slug:festival_slug>/enregistrement/visites/", views.visit_create, name="visit_create"),
+    path(
+        "f/<slug:festival_slug>/enregistrement/visites/<int:visit_id>/annuler/",
+        views.visit_cancel,
+        name="visit_cancel",
+    ),
 ]
