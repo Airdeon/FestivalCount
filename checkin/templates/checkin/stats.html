@@ -37,6 +37,15 @@
         {% endfor %}
     </tbody>
 </table>
+<canvas id="ranking-chart" height="300"></canvas>
+<canvas id="evolution-chart" height="300"></canvas>
+<div id="map-container"></div>
+
+{{ ranking|json_script:"ranking-data" }}
+{{ hourly_evolution|json_script:"evolution-data" }}
+
+<script src="{% static 'checkin/js/vendor/chart.umd.min.js' %}"></script>
+<script src="{% static 'checkin/js/stats.js' %}" defer></script>
 {% endif %}
 {% endif %}
 {% endblock %}
