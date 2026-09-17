@@ -1,4 +1,5 @@
 from unittest.mock import patch
+from urllib.parse import parse_qs, urlparse
 
 import pytest
 from django.db import IntegrityError
@@ -154,18 +155,19 @@ def test_membership_request_create_encodes_query_parameter(client, django_user_m
     client.login(username="alice", password="pass12345")
 
     # POST with a query parameter containing special characters
+    original_query = "test & special + chars#hash"
     response = client.post(
         reverse("checkin:membership_request_create", kwargs={"festival_slug": festival.slug}),
-        {"q": "test & special + chars#hash"},
+        {"q": original_query},
     )
 
     # Verify redirect (302)
     assert response.status_code == 302
-    # Verify the URL-encoded query parameter is in the redirect location
+    # Verify the URL-encoded query parameter round-trips correctly
     assert response.url is not None
-    assert "q=test" in response.url
-    # The encoded form should preserve the special characters correctly
-    assert "%26" in response.url or "&" in response.url  # & can be encoded or not
+    parsed_qs = parse_qs(urlparse(response.url).query)
+    # The query parameter should be properly decoded and match the original value
+    assert parsed_qs["q"] == [original_query]
 
 
 @pytest.mark.django_db
@@ -174,13 +176,17 @@ def test_festival_create_handles_race_condition(client, django_user_model):
     user = django_user_model.objects.create_user(username="alice", password="pass12345")
     client.login(username="alice", password="pass12345")
 
-    # Create a real festival to use as the second side effect (after race condition retry)
-    real_festival = Festival.objects.create(nom="Test Festival", slug="test-festival-2")
+    # Mock the create method to fail on first call, then call the real create on retry
+    real_create = Festival.objects.create
+    call_count = {"n": 0}
 
-    with patch(
-        "checkin.models.Festival.objects.create",
-        side_effect=[IntegrityError("Unique constraint violated"), real_festival],
-    ):
+    def fake_create(*args, **kwargs):
+        call_count["n"] += 1
+        if call_count["n"] == 1:
+            raise IntegrityError("Unique constraint violated")
+        return real_create(*args, **kwargs)
+
+    with patch("checkin.models.Festival.objects.create", side_effect=fake_create):
         response = client.post(
             reverse("checkin:festival_create"),
             {"nom": "Test Festival"},
@@ -188,7 +194,7 @@ def test_festival_create_handles_race_condition(client, django_user_model):
 
     # Verify we get a 302 redirect (not 500)
     assert response.status_code == 302
-    # Verify exactly one Festival exists (the retry succeeded)
+    # Verify exactly one Festival exists (the retry's create() call actually persisted a row)
     assert Festival.objects.count() == 1
     # Verify the organizer membership was created
     assert Membership.objects.filter(user=user, role=Membership.ROLE_ORGANISATEUR).count() == 1
