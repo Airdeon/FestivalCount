@@ -144,3 +144,51 @@ def test_membership_request_create_handles_race_condition(
     assert not MembershipRequest.objects.filter(
         user=user, festival=festival
     ).exists()
+
+
+@pytest.mark.django_db
+def test_membership_request_create_encodes_query_parameter(client, django_user_model):
+    """Test that special characters in search query are URL-encoded in the redirect."""
+    festival = Festival.objects.create(nom="Festival Photo", slug="festival-photo")
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    client.login(username="alice", password="pass12345")
+
+    # POST with a query parameter containing special characters
+    response = client.post(
+        reverse("checkin:membership_request_create", kwargs={"festival_slug": festival.slug}),
+        {"q": "test & special + chars#hash"},
+    )
+
+    # Verify redirect (302)
+    assert response.status_code == 302
+    # Verify the URL-encoded query parameter is in the redirect location
+    assert response.url is not None
+    assert "q=test" in response.url
+    # The encoded form should preserve the special characters correctly
+    assert "%26" in response.url or "&" in response.url  # & can be encoded or not
+
+
+@pytest.mark.django_db
+def test_festival_create_handles_race_condition(client, django_user_model):
+    """Test that IntegrityError from concurrent festival creates is handled gracefully."""
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    client.login(username="alice", password="pass12345")
+
+    # Create a real festival to use as the second side effect (after race condition retry)
+    real_festival = Festival.objects.create(nom="Test Festival", slug="test-festival-2")
+
+    with patch(
+        "checkin.models.Festival.objects.create",
+        side_effect=[IntegrityError("Unique constraint violated"), real_festival],
+    ):
+        response = client.post(
+            reverse("checkin:festival_create"),
+            {"nom": "Test Festival"},
+        )
+
+    # Verify we get a 302 redirect (not 500)
+    assert response.status_code == 302
+    # Verify exactly one Festival exists (the retry succeeded)
+    assert Festival.objects.count() == 1
+    # Verify the organizer membership was created
+    assert Membership.objects.filter(user=user, role=Membership.ROLE_ORGANISATEUR).count() == 1

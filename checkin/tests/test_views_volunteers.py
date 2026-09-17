@@ -82,3 +82,25 @@ def test_volunteer_list_shows_pending_requests(client, django_user_model):
 
     assert response.status_code == 200
     assert "bob" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_volunteer_list_ignores_pending_requests_from_other_festivals(client, django_user_model):
+    """Test that pending requests from other festivals don't appear in the volunteer list."""
+    festival_a = Festival.objects.create(nom="Festival A", slug="festival-a")
+    festival_b = Festival.objects.create(nom="Festival B", slug="festival-b")
+
+    organisateur = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=organisateur, festival=festival_a, role=Membership.ROLE_ORGANISATEUR)
+
+    requester = django_user_model.objects.create_user(username="bob", password="pass12345")
+    # Create a pending request for Festival B, not Festival A
+    MembershipRequest.objects.create(user=requester, festival=festival_b)
+
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:volunteer_list", kwargs={"festival_slug": festival_a.slug}))
+
+    assert response.status_code == 200
+    # The user "bob" who has a pending request on Festival B should NOT appear in Festival A's volunteer list
+    assert "bob" not in response.content.decode()

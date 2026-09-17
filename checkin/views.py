@@ -9,6 +9,7 @@ from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import urlencode
 from django.views.decorators.http import require_POST
 
 from checkin.forms import EditionForm, FestivalCreationForm, VolunteerCreationForm
@@ -51,7 +52,13 @@ def festival_create(request):
         if form.is_valid():
             nom = form.cleaned_data["nom"]
             slug = generate_unique_festival_slug(nom)
-            festival = Festival.objects.create(nom=nom, slug=slug)
+            try:
+                festival = Festival.objects.create(nom=nom, slug=slug)
+            except IntegrityError:
+                # Race condition: another request grabbed this slug in the same instant.
+                # Regenerate the slug to account for the newly-created row and retry.
+                slug = generate_unique_festival_slug(nom)
+                festival = Festival.objects.create(nom=nom, slug=slug)
             Membership.objects.create(user=request.user, festival=festival, role=Membership.ROLE_ORGANISATEUR)
             messages.success(request, f"Festival « {festival.nom} » créé avec succès.")
             return redirect("checkin:stats", festival_slug=festival.slug)
@@ -237,7 +244,7 @@ def membership_request_create(request, festival_slug):
             messages.info(request, "Votre demande est déjà en attente.")
 
     query = request.POST.get("q", "")
-    return redirect(f"{reverse('checkin:festival_search')}?q={query}")
+    return redirect(f"{reverse('checkin:festival_search')}?{urlencode({'q': query})}")
 
 
 @require_POST
