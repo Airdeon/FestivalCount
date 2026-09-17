@@ -32,6 +32,12 @@
         });
         const maxCount = Math.max(0, ...Object.values(counts));
 
+        svg.querySelectorAll("path").forEach(function (path) {
+            path.setAttribute("fill", "#f3f4f6");
+            path.setAttribute("stroke", "#9ca3af");
+            path.setAttribute("stroke-width", "0.5");
+        });
+
         const unmatched = [];
         Object.keys(counts).forEach(function (code) {
             const path = findDepartmentPath(svg, code);

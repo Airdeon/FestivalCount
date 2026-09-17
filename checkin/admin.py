@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from checkin.models import Edition, Festival, Membership, Origin, Visit
+from checkin.models import Edition, Festival, Membership, MembershipRequest, Origin, Visit
 
 
 @admin.register(Festival)
@@ -31,3 +31,9 @@ class OriginAdmin(admin.ModelAdmin):
 class VisitAdmin(admin.ModelAdmin):
     list_display = ["origin", "edition", "horodatage", "enregistre_par"]
     list_filter = ["edition__festival", "edition", "origin__type"]
+
+
+@admin.register(MembershipRequest)
+class MembershipRequestAdmin(admin.ModelAdmin):
+    list_display = ["user", "festival", "created_at"]
+    list_filter = ["festival"]

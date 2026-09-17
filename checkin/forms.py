@@ -31,3 +31,7 @@ class VolunteerCreationForm(forms.Form):
         if User.objects.filter(username=username).exists():
             raise forms.ValidationError("Ce nom d'utilisateur existe déjà.")
         return username
+
+
+class FestivalCreationForm(forms.Form):
+    nom = forms.CharField(max_length=200)

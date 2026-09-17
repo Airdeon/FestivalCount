@@ -17,14 +17,14 @@ python manage.py migrate
 python manage.py createsuperuser
 ```
 
-## Création d'un festival (première fois)
+## Créer un compte et un festival
 
-1. Lancer `python manage.py runserver` et se connecter sur `/admin/` avec le compte superuser.
-2. Créer un `Festival` (nom + slug).
-3. Créer une `Edition` pour ce festival (nom + dates du week-end du festival).
-4. Créer un compte `User` pour le premier organisateur (ou utiliser le compte superuser).
-5. Créer un `Membership` liant ce compte au festival avec le rôle « Organisateur ».
-6. Se déconnecter de `/admin/`, se connecter sur `/login/` avec ce compte : vous êtes redirigé vers les statistiques du festival. Depuis là, la page « Bénévoles » (accessible depuis `/f/<slug>/benevoles/`) permet de créer les comptes bénévoles sans repasser par l'admin.
+1. Lancer `python manage.py runserver`, ouvrir `/inscription/` et créer un compte.
+2. Depuis le tableau de bord, cliquer sur « Créer un festival » (le slug est généré automatiquement à partir du nom) : vous devenez Organisateur de ce festival.
+3. Depuis la page « Éditions » du festival, créer une édition (nom + dates du week-end du festival).
+4. Les bénévoles créent eux-mêmes un compte via `/inscription/`, puis « Rejoindre un festival » pour envoyer une demande — à valider depuis la page « Bénévoles » du festival. Un organisateur peut aussi créer directement un compte bénévole depuis cette même page.
+
+Le compte superuser Django (`createsuperuser` + `/admin/`) reste utile pour l'administration technique (suppression de données, etc.) mais n'est plus nécessaire pour créer le premier festival.
 
 ## Lancer l'application
 

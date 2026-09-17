@@ -4,7 +4,7 @@ import pytest
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 
-from checkin.models import Edition, Festival, Membership, Origin, Visit
+from checkin.models import Edition, Festival, Membership, MembershipRequest, Origin, Visit
 
 
 @pytest.mark.django_db
@@ -121,3 +121,21 @@ def test_visit_precision_libre_is_optional():
     visit = Visit.objects.create(edition=edition, origin=origin, enregistre_par=user, precision_libre="Canada")
 
     assert visit.precision_libre == "Canada"
+
+
+@pytest.mark.django_db
+def test_membership_request_str_includes_user_and_festival():
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    user = User.objects.create_user(username="alice", password="pass12345")
+    membership_request = MembershipRequest.objects.create(user=user, festival=festival)
+    assert "alice" in str(membership_request)
+    assert "Festival A" in str(membership_request)
+
+
+@pytest.mark.django_db
+def test_membership_request_is_unique_per_user_and_festival():
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    user = User.objects.create_user(username="alice", password="pass12345")
+    MembershipRequest.objects.create(user=user, festival=festival)
+    with pytest.raises(IntegrityError):
+        MembershipRequest.objects.create(user=user, festival=festival)

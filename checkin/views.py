@@ -1,17 +1,38 @@
 import json
 
 from django.contrib import messages
+from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.http import urlencode
 from django.views.decorators.http import require_POST
 
-from checkin.forms import EditionForm, VolunteerCreationForm
-from checkin.models import Membership, Origin, Visit
+from checkin.forms import EditionForm, FestivalCreationForm, VolunteerCreationForm
+from checkin.models import Festival, Membership, MembershipRequest, Origin, Visit
 from checkin.permissions import membership_required
-from checkin.selectors import get_active_edition
+from checkin.selectors import generate_unique_festival_slug, get_active_edition
 from checkin.stats import get_hourly_evolution, get_key_figures, get_ranking
+
+
+def signup(request):
+    if request.user.is_authenticated:
+        return redirect("checkin:select_festival")
+
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("checkin:select_festival")
+    else:
+        form = UserCreationForm()
+
+    return render(request, "checkin/signup.html", {"form": form})
 
 
 @login_required
@@ -22,6 +43,29 @@ def select_festival(request):
         target_view = "checkin:stats" if membership.role == Membership.ROLE_ORGANISATEUR else "checkin:register"
         return redirect(target_view, festival_slug=membership.festival.slug)
     return render(request, "checkin/select_festival.html", {"memberships": memberships})
+
+
+@login_required
+def festival_create(request):
+    if request.method == "POST":
+        form = FestivalCreationForm(request.POST)
+        if form.is_valid():
+            nom = form.cleaned_data["nom"]
+            slug = generate_unique_festival_slug(nom)
+            try:
+                festival = Festival.objects.create(nom=nom, slug=slug)
+            except IntegrityError:
+                # Race condition: another request grabbed this slug in the same instant.
+                # Regenerate the slug to account for the newly-created row and retry.
+                slug = generate_unique_festival_slug(nom)
+                festival = Festival.objects.create(nom=nom, slug=slug)
+            Membership.objects.create(user=request.user, festival=festival, role=Membership.ROLE_ORGANISATEUR)
+            messages.success(request, f"Festival « {festival.nom} » créé avec succès.")
+            return redirect("checkin:stats", festival_slug=festival.slug)
+    else:
+        form = FestivalCreationForm()
+
+    return render(request, "checkin/festival_create.html", {"form": form})
 
 
 @membership_required()
@@ -131,6 +175,7 @@ def volunteer_list(request, festival_slug):
     memberships = Membership.objects.filter(
         festival=request.festival, role=Membership.ROLE_BENEVOLE
     ).select_related("user")
+    pending_requests = MembershipRequest.objects.filter(festival=request.festival).select_related("user")
 
     if request.method == "POST":
         form = VolunteerCreationForm(request.POST)
@@ -145,7 +190,11 @@ def volunteer_list(request, festival_slug):
     else:
         form = VolunteerCreationForm()
 
-    return render(request, "checkin/volunteer_list.html", {"memberships": memberships, "form": form})
+    return render(
+        request,
+        "checkin/volunteer_list.html",
+        {"memberships": memberships, "pending_requests": pending_requests, "form": form},
+    )
 
 
 @require_POST
@@ -157,4 +206,70 @@ def volunteer_remove(request, festival_slug, membership_id):
     if membership is not None:
         membership.delete()
         messages.success(request, "Accès du bénévole retiré.")
+    return redirect("checkin:volunteer_list", festival_slug=festival_slug)
+
+
+@login_required
+def festival_search(request):
+    query = request.GET.get("q", "").strip()
+    results = []
+    if query:
+        member_festival_ids = Membership.objects.filter(user=request.user).values_list("festival_id", flat=True)
+        pending_festival_ids = set(
+            MembershipRequest.objects.filter(user=request.user).values_list("festival_id", flat=True)
+        )
+        festivals = Festival.objects.filter(nom__icontains=query).exclude(id__in=member_festival_ids)
+        results = [
+            {"festival": festival, "pending": festival.id in pending_festival_ids}
+            for festival in festivals
+        ]
+
+    return render(request, "checkin/festival_search.html", {"query": query, "results": results})
+
+
+@require_POST
+@login_required
+def membership_request_create(request, festival_slug):
+    festival = get_object_or_404(Festival, slug=festival_slug)
+
+    if Membership.objects.filter(user=request.user, festival=festival).exists():
+        messages.error(request, "Vous êtes déjà membre de ce festival.")
+    elif MembershipRequest.objects.filter(user=request.user, festival=festival).exists():
+        messages.info(request, "Votre demande est déjà en attente.")
+    else:
+        try:
+            MembershipRequest.objects.create(user=request.user, festival=festival)
+            messages.success(request, "Demande envoyée. L'organisateur doit encore la valider.")
+        except IntegrityError:
+            messages.info(request, "Votre demande est déjà en attente.")
+
+    query = request.POST.get("q", "")
+    return redirect(f"{reverse('checkin:festival_search')}?{urlencode({'q': query})}")
+
+
+@require_POST
+@membership_required(roles=[Membership.ROLE_ORGANISATEUR])
+def membership_request_accept(request, festival_slug, request_id):
+    membership_request = MembershipRequest.objects.filter(id=request_id, festival=request.festival).first()
+    if membership_request is not None:
+        try:
+            Membership.objects.create(
+                user=membership_request.user, festival=request.festival, role=Membership.ROLE_BENEVOLE
+            )
+        except IntegrityError:
+            # Race condition: someone else already accepted this request concurrently.
+            # The end state is the same (user is a member), so we proceed to clean up and show success.
+            pass
+        membership_request.delete()
+        messages.success(request, "Demande acceptée.")
+    return redirect("checkin:volunteer_list", festival_slug=festival_slug)
+
+
+@require_POST
+@membership_required(roles=[Membership.ROLE_ORGANISATEUR])
+def membership_request_reject(request, festival_slug, request_id):
+    membership_request = MembershipRequest.objects.filter(id=request_id, festival=request.festival).first()
+    if membership_request is not None:
+        membership_request.delete()
+        messages.success(request, "Demande refusée.")
     return redirect("checkin:volunteer_list", festival_slug=festival_slug)
