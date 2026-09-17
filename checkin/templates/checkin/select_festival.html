@@ -13,6 +13,9 @@
     {% endfor %}
 </ul>
 {% else %}
-<p>Vous n'avez accès à aucun festival pour le moment. Contactez l'organisateur de votre festival.</p>
+<p>Vous n'avez accès à aucun festival pour le moment.</p>
 {% endif %}
+
+<p><a href="{% url 'checkin:festival_create' %}">Créer un festival</a></p>
+<p><a href="{% url 'checkin:festival_search' %}">Rejoindre un festival</a></p>
 {% endblock %}

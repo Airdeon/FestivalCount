@@ -175,3 +175,20 @@ def test_signup_redirects_authenticated_user(client, django_user_model):
     response = client.get(reverse("checkin:signup"))
 
     assert response.status_code == 302
+
+
+@pytest.mark.django_db
+def test_select_festival_always_shows_create_and_join_links(client, django_user_model):
+    festival_a = Festival.objects.create(nom="Festival A", slug="festival-a")
+    festival_b = Festival.objects.create(nom="Festival B", slug="festival-b")
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival_a, role=Membership.ROLE_BENEVOLE)
+    Membership.objects.create(user=user, festival=festival_b, role=Membership.ROLE_BENEVOLE)
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:select_festival"))
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert reverse("checkin:festival_create") in content
+    assert reverse("checkin:festival_search") in content
