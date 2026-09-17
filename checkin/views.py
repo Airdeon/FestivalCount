@@ -240,9 +240,14 @@ def membership_request_create(request, festival_slug):
 def membership_request_accept(request, festival_slug, request_id):
     membership_request = MembershipRequest.objects.filter(id=request_id, festival=request.festival).first()
     if membership_request is not None:
-        Membership.objects.create(
-            user=membership_request.user, festival=request.festival, role=Membership.ROLE_BENEVOLE
-        )
+        try:
+            Membership.objects.create(
+                user=membership_request.user, festival=request.festival, role=Membership.ROLE_BENEVOLE
+            )
+        except IntegrityError:
+            # Race condition: someone else already accepted this request concurrently.
+            # The end state is the same (user is a member), so we proceed to clean up and show success.
+            pass
         membership_request.delete()
         messages.success(request, "Demande acceptée.")
     return redirect("checkin:volunteer_list", festival_slug=festival_slug)
@@ -251,6 +256,8 @@ def membership_request_accept(request, festival_slug, request_id):
 @require_POST
 @membership_required(roles=[Membership.ROLE_ORGANISATEUR])
 def membership_request_reject(request, festival_slug, request_id):
-    MembershipRequest.objects.filter(id=request_id, festival=request.festival).delete()
-    messages.success(request, "Demande refusée.")
+    membership_request = MembershipRequest.objects.filter(id=request_id, festival=request.festival).first()
+    if membership_request is not None:
+        membership_request.delete()
+        messages.success(request, "Demande refusée.")
     return redirect("checkin:volunteer_list", festival_slug=festival_slug)
