@@ -5,6 +5,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from django.db import IntegrityError
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -224,8 +225,11 @@ def membership_request_create(request, festival_slug):
     elif MembershipRequest.objects.filter(user=request.user, festival=festival).exists():
         messages.info(request, "Votre demande est déjà en attente.")
     else:
-        MembershipRequest.objects.create(user=request.user, festival=festival)
-        messages.success(request, "Demande envoyée. L'organisateur doit encore la valider.")
+        try:
+            MembershipRequest.objects.create(user=request.user, festival=festival)
+            messages.success(request, "Demande envoyée. L'organisateur doit encore la valider.")
+        except IntegrityError:
+            messages.info(request, "Votre demande est déjà en attente.")
 
     query = request.POST.get("q", "")
     return redirect(f"{reverse('checkin:festival_search')}?q={query}")

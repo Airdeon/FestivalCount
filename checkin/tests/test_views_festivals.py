@@ -1,4 +1,7 @@
+from unittest.mock import patch
+
 import pytest
+from django.db import IntegrityError
 from django.urls import reverse
 
 from checkin.models import Festival, Membership, MembershipRequest
@@ -111,3 +114,33 @@ def test_membership_request_create_rejects_if_already_member(client, django_user
 
     assert response.status_code == 302
     assert not MembershipRequest.objects.filter(user=user, festival=festival).exists()
+
+
+@pytest.mark.django_db
+def test_membership_request_create_handles_race_condition(
+    client, django_user_model
+):
+    """Test that IntegrityError from concurrent requests is handled."""
+    festival = Festival.objects.create(nom="Festival Photo", slug="festival-photo")
+    user = django_user_model.objects.create_user(
+        username="alice", password="pass12345"
+    )
+    client.login(username="alice", password="pass12345")
+
+    with patch(
+        "checkin.models.MembershipRequest.objects.create",
+        side_effect=IntegrityError("Unique constraint violated"),
+    ):
+        response = client.post(
+            reverse(
+                "checkin:membership_request_create",
+                kwargs={"festival_slug": festival.slug},
+            )
+        )
+
+    # Verify we get a 302 redirect (not 500)
+    assert response.status_code == 302
+    # Verify no request was created (due to patched exception)
+    assert not MembershipRequest.objects.filter(
+        user=user, festival=festival
+    ).exists()
