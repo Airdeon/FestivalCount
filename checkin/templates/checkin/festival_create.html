@@ -1,0 +1,10 @@
+{% extends "checkin/base.html" %}
+{% block title %}Créer un festival — Festival Count{% endblock %}
+{% block content %}
+<h1>Créer un festival</h1>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Créer</button>
+</form>
+{% endblock %}

@@ -9,10 +9,10 @@ from django.http import JsonResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from checkin.forms import EditionForm, VolunteerCreationForm
-from checkin.models import Membership, Origin, Visit
+from checkin.forms import EditionForm, FestivalCreationForm, VolunteerCreationForm
+from checkin.models import Festival, Membership, Origin, Visit
 from checkin.permissions import membership_required
-from checkin.selectors import get_active_edition
+from checkin.selectors import generate_unique_festival_slug, get_active_edition
 from checkin.stats import get_hourly_evolution, get_key_figures, get_ranking
 
 
@@ -40,6 +40,23 @@ def select_festival(request):
         target_view = "checkin:stats" if membership.role == Membership.ROLE_ORGANISATEUR else "checkin:register"
         return redirect(target_view, festival_slug=membership.festival.slug)
     return render(request, "checkin/select_festival.html", {"memberships": memberships})
+
+
+@login_required
+def festival_create(request):
+    if request.method == "POST":
+        form = FestivalCreationForm(request.POST)
+        if form.is_valid():
+            nom = form.cleaned_data["nom"]
+            slug = generate_unique_festival_slug(nom)
+            festival = Festival.objects.create(nom=nom, slug=slug)
+            Membership.objects.create(user=request.user, festival=festival, role=Membership.ROLE_ORGANISATEUR)
+            messages.success(request, f"Festival « {festival.nom} » créé avec succès.")
+            return redirect("checkin:stats", festival_slug=festival.slug)
+    else:
+        form = FestivalCreationForm()
+
+    return render(request, "checkin/festival_create.html", {"form": form})
 
 
 @membership_required()
