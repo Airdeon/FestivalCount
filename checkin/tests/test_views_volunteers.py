@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse
 
-from checkin.models import Festival, Membership
+from checkin.models import Festival, Membership, MembershipRequest
 
 
 @pytest.mark.django_db
@@ -67,3 +67,18 @@ def test_volunteer_remove_deletes_membership(client, django_user_model):
     assert response.status_code == 302
     assert not Membership.objects.filter(id=volunteer_membership.id).exists()
     assert django_user_model.objects.filter(username="bob").exists()
+
+
+@pytest.mark.django_db
+def test_volunteer_list_shows_pending_requests(client, django_user_model):
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    organisateur = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=organisateur, festival=festival, role=Membership.ROLE_ORGANISATEUR)
+    requester = django_user_model.objects.create_user(username="bob", password="pass12345")
+    MembershipRequest.objects.create(user=requester, festival=festival)
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:volunteer_list", kwargs={"festival_slug": festival.slug}))
+
+    assert response.status_code == 200
+    assert "bob" in response.content.decode()

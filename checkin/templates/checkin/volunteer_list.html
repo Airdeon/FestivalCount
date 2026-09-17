@@ -3,6 +3,24 @@
 {% block content %}
 <h1>{{ request.festival.nom }} — Bénévoles</h1>
 
+<h2>Demandes en attente</h2>
+<ul>
+    {% for membership_request in pending_requests %}
+    <li>
+        {{ membership_request.user.username }}
+        <form method="post" action="{% url 'checkin:membership_request_accept' festival_slug=request.festival.slug request_id=membership_request.id %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit">Accepter</button>
+        </form>
+        <form method="post" action="{% url 'checkin:membership_request_reject' festival_slug=request.festival.slug request_id=membership_request.id %}" style="display:inline">
+            {% csrf_token %}
+            <button type="submit">Refuser</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+
+<h2>Bénévoles</h2>
 <ul>
     {% for membership in memberships %}
     <li>

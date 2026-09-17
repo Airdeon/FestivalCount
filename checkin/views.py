@@ -168,6 +168,7 @@ def volunteer_list(request, festival_slug):
     memberships = Membership.objects.filter(
         festival=request.festival, role=Membership.ROLE_BENEVOLE
     ).select_related("user")
+    pending_requests = MembershipRequest.objects.filter(festival=request.festival).select_related("user")
 
     if request.method == "POST":
         form = VolunteerCreationForm(request.POST)
@@ -182,7 +183,11 @@ def volunteer_list(request, festival_slug):
     else:
         form = VolunteerCreationForm()
 
-    return render(request, "checkin/volunteer_list.html", {"memberships": memberships, "form": form})
+    return render(
+        request,
+        "checkin/volunteer_list.html",
+        {"memberships": memberships, "pending_requests": pending_requests, "form": form},
+    )
 
 
 @require_POST
