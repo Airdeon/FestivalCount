@@ -1,6 +1,7 @@
 from unittest.mock import patch
 
 import pytest
+from django.contrib.messages import get_messages
 from django.db import IntegrityError
 from django.urls import reverse
 
@@ -133,3 +134,6 @@ def test_membership_request_reject_is_silent_noop_when_already_processed(client,
     assert response.status_code == 302
     # Verify no request with that id exists
     assert not MembershipRequest.objects.filter(id=99999).exists()
+    # Verify no success message was shown (silent no-op, not misleading success)
+    messages_list = list(get_messages(response.wsgi_request))
+    assert len(messages_list) == 0
