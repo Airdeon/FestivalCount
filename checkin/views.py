@@ -6,11 +6,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.http import JsonResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from checkin.forms import EditionForm, FestivalCreationForm, VolunteerCreationForm
-from checkin.models import Festival, Membership, Origin, Visit
+from checkin.models import Festival, Membership, MembershipRequest, Origin, Visit
 from checkin.permissions import membership_required
 from checkin.selectors import generate_unique_festival_slug, get_active_edition
 from checkin.stats import get_hourly_evolution, get_key_figures, get_ranking
@@ -193,3 +194,38 @@ def volunteer_remove(request, festival_slug, membership_id):
         membership.delete()
         messages.success(request, "Accès du bénévole retiré.")
     return redirect("checkin:volunteer_list", festival_slug=festival_slug)
+
+
+@login_required
+def festival_search(request):
+    query = request.GET.get("q", "").strip()
+    results = []
+    if query:
+        member_festival_ids = Membership.objects.filter(user=request.user).values_list("festival_id", flat=True)
+        pending_festival_ids = set(
+            MembershipRequest.objects.filter(user=request.user).values_list("festival_id", flat=True)
+        )
+        festivals = Festival.objects.filter(nom__icontains=query).exclude(id__in=member_festival_ids)
+        results = [
+            {"festival": festival, "pending": festival.id in pending_festival_ids}
+            for festival in festivals
+        ]
+
+    return render(request, "checkin/festival_search.html", {"query": query, "results": results})
+
+
+@require_POST
+@login_required
+def membership_request_create(request, festival_slug):
+    festival = get_object_or_404(Festival, slug=festival_slug)
+
+    if Membership.objects.filter(user=request.user, festival=festival).exists():
+        messages.error(request, "Vous êtes déjà membre de ce festival.")
+    elif MembershipRequest.objects.filter(user=request.user, festival=festival).exists():
+        messages.info(request, "Votre demande est déjà en attente.")
+    else:
+        MembershipRequest.objects.create(user=request.user, festival=festival)
+        messages.success(request, "Demande envoyée. L'organisateur doit encore la valider.")
+
+    query = request.POST.get("q", "")
+    return redirect(f"{reverse('checkin:festival_search')}?q={query}")

@@ -11,6 +11,7 @@ urlpatterns = [
     path("inscription/", views.signup, name="signup"),
     path("festivals/", views.select_festival, name="select_festival"),
     path("festivals/creer/", views.festival_create, name="festival_create"),
+    path("festivals/rejoindre/", views.festival_search, name="festival_search"),
     path("f/<slug:festival_slug>/enregistrement/", views.register, name="register"),
     path("f/<slug:festival_slug>/enregistrement/visites/", views.visit_create, name="visit_create"),
     path(
@@ -18,6 +19,7 @@ urlpatterns = [
         views.visit_cancel,
         name="visit_cancel",
     ),
+    path("f/<slug:festival_slug>/rejoindre/", views.membership_request_create, name="membership_request_create"),
     path("f/<slug:festival_slug>/stats/", views.stats, name="stats"),
     path("f/<slug:festival_slug>/stats/data/", views.stats_data, name="stats_data"),
     path("f/<slug:festival_slug>/editions/", views.edition_list, name="edition_list"),
