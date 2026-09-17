@@ -233,3 +233,24 @@ def membership_request_create(request, festival_slug):
 
     query = request.POST.get("q", "")
     return redirect(f"{reverse('checkin:festival_search')}?q={query}")
+
+
+@require_POST
+@membership_required(roles=[Membership.ROLE_ORGANISATEUR])
+def membership_request_accept(request, festival_slug, request_id):
+    membership_request = MembershipRequest.objects.filter(id=request_id, festival=request.festival).first()
+    if membership_request is not None:
+        Membership.objects.create(
+            user=membership_request.user, festival=request.festival, role=Membership.ROLE_BENEVOLE
+        )
+        membership_request.delete()
+        messages.success(request, "Demande acceptée.")
+    return redirect("checkin:volunteer_list", festival_slug=festival_slug)
+
+
+@require_POST
+@membership_required(roles=[Membership.ROLE_ORGANISATEUR])
+def membership_request_reject(request, festival_slug, request_id):
+    MembershipRequest.objects.filter(id=request_id, festival=request.festival).delete()
+    messages.success(request, "Demande refusée.")
+    return redirect("checkin:volunteer_list", festival_slug=festival_slug)

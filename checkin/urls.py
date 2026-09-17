@@ -25,6 +25,16 @@ urlpatterns = [
     path("f/<slug:festival_slug>/editions/", views.edition_list, name="edition_list"),
     path("f/<slug:festival_slug>/benevoles/", views.volunteer_list, name="volunteer_list"),
     path(
+        "f/<slug:festival_slug>/benevoles/demandes/<int:request_id>/accepter/",
+        views.membership_request_accept,
+        name="membership_request_accept",
+    ),
+    path(
+        "f/<slug:festival_slug>/benevoles/demandes/<int:request_id>/refuser/",
+        views.membership_request_reject,
+        name="membership_request_reject",
+    ),
+    path(
         "f/<slug:festival_slug>/benevoles/<int:membership_id>/retirer/",
         views.volunteer_remove,
         name="volunteer_remove",
