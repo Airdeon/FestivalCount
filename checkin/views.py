@@ -131,7 +131,11 @@ def stats(request, festival_slug):
     context = {"editions": editions, "selected_edition": edition}
     if edition is not None:
         context["key_figures"] = get_key_figures(edition)
-        context["ranking"] = get_ranking(edition)
+        ranking = get_ranking(edition)
+        max_count = max((row["nombre"] for row in ranking), default=0)
+        for row in ranking:
+            row["pourcentage"] = round((row["nombre"] / max_count) * 100) if max_count else 0
+        context["ranking"] = ranking
         context["hourly_evolution"] = get_hourly_evolution(edition)
         context["is_current_edition"] = edition == active_edition
 

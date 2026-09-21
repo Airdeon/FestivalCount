@@ -278,3 +278,100 @@ main {
         grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
     }
 }
+
+.edition-selector {
+    padding: 1rem;
+}
+
+.edition-selector select {
+    font-size: 1rem;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-surface-border);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+}
+
+.kpi-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    padding: 0 1rem 1rem 1rem;
+}
+
+.kpi-card {
+    border-radius: var(--radius-md);
+    padding: 1rem 0.5rem;
+    text-align: center;
+    background: linear-gradient(160deg, var(--color-accent-soft-start), var(--color-accent-soft-end));
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-theme);
+}
+
+.kpi-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--color-accent-solid);
+}
+
+.kpi-label {
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+    margin-top: 0.25rem;
+}
+
+.panel {
+    border-radius: var(--radius-md);
+    padding: 1rem;
+    margin: 0 1rem 1rem 1rem;
+    background-color: var(--color-surface);
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-theme);
+}
+
+.panel-title {
+    margin: 0 0 0.75rem 0;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--color-text-muted);
+}
+
+.bar-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.bar-label {
+    width: 40%;
+    color: var(--color-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bar-track {
+    flex: 1;
+    height: 10px;
+    border-radius: 999px;
+    background-color: var(--color-surface-border);
+    overflow: hidden;
+}
+
+.bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-accent-start), var(--color-accent-solid));
+}
+
+.bar-count {
+    width: 2rem;
+    text-align: right;
+    color: var(--color-text);
+    font-weight: 700;
+}

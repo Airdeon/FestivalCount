@@ -7,7 +7,7 @@
 {% if not editions %}
 <p>Aucune édition pour ce festival.</p>
 {% else %}
-<form method="get" id="edition-selector-form">
+<form method="get" id="edition-selector-form" class="edition-selector">
     <label for="edition-selector">Édition :</label>
     <select name="edition" id="edition-selector" onchange="this.form.submit()">
         {% for e in editions %}
@@ -18,28 +18,48 @@
 
 {% if selected_edition %}
 <section id="key-figures"
+         class="kpi-row"
          data-total="{{ key_figures.total_visiteurs }}"
          data-departements="{{ key_figures.nombre_departements }}"
          data-pays="{{ key_figures.nombre_pays }}"
          data-stats-data-url="{% url 'checkin:stats_data' festival_slug=request.festival.slug %}"
          data-edition-id="{{ selected_edition.id }}"
          data-is-current="{{ is_current_edition|yesno:'true,false' }}">
-    <p>Total visiteurs : <strong id="total-visiteurs">{{ key_figures.total_visiteurs }}</strong></p>
-    <p>Départements représentés : <strong id="total-departements">{{ key_figures.nombre_departements }}</strong></p>
-    <p>Pays représentés : <strong id="total-pays">{{ key_figures.nombre_pays }}</strong></p>
+    <div class="kpi-card">
+        <div class="kpi-value" id="total-visiteurs">{{ key_figures.total_visiteurs }}</div>
+        <div class="kpi-label">Visiteurs</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value" id="total-departements">{{ key_figures.nombre_departements }}</div>
+        <div class="kpi-label">Départements</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-value" id="total-pays">{{ key_figures.nombre_pays }}</div>
+        <div class="kpi-label">Pays</div>
+    </div>
 </section>
 
-<table id="ranking-table">
-    <thead><tr><th>Origine</th><th>Visiteurs</th></tr></thead>
-    <tbody>
-        {% for row in ranking %}
-        <tr><td>{{ row.origin__code }} — {{ row.origin__nom }}</td><td>{{ row.nombre }}</td></tr>
-        {% endfor %}
-    </tbody>
-</table>
-<canvas id="ranking-chart" height="300"></canvas>
-<canvas id="evolution-chart" height="300"></canvas>
-<div id="map-container" data-svg-url="{% static 'checkin/svg/france-departements.svg' %}"></div>
+<div class="panel">
+    <h2 class="panel-title">Classement</h2>
+    {% for row in ranking %}
+    <div class="bar-row">
+        <span class="bar-label">{{ row.origin__code }} — {{ row.origin__nom }}</span>
+        <div class="bar-track"><div class="bar-fill" style="width: {{ row.pourcentage }}%"></div></div>
+        <span class="bar-count">{{ row.nombre }}</span>
+    </div>
+    {% endfor %}
+</div>
+
+<div class="panel">
+    <h2 class="panel-title">Évolution</h2>
+    <canvas id="ranking-chart" height="220"></canvas>
+    <canvas id="evolution-chart" height="220"></canvas>
+</div>
+
+<div class="panel">
+    <h2 class="panel-title">Carte de France</h2>
+    <div id="map-container" data-svg-url="{% static 'checkin/svg/france-departements.svg' %}"></div>
+</div>
 
 {{ ranking|json_script:"ranking-data" }}
 {{ hourly_evolution|json_script:"evolution-data" }}
