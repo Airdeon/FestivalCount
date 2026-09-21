@@ -25,6 +25,8 @@
     --color-success-bg-start: #0f5132;
     --color-success-bg-end: #0a3622;
     --color-success-text: #86efac;
+    --color-success-button-bg: rgba(255, 255, 255, 0.9);
+    --color-success-button-text: #14532d;
 
     --color-error-bg: #611a15;
     --color-error-text: #ffffff;
@@ -56,6 +58,8 @@
     --color-success-bg-start: #dcfce7;
     --color-success-bg-end: #bbf7d0;
     --color-success-text: #14532d;
+    --color-success-button-bg: rgba(255, 255, 255, 0.9);
+    --color-success-button-text: #14532d;
 
     --color-error-bg: #fdecea;
     --color-error-text: #611a15;
@@ -228,8 +232,8 @@ main {
     padding: 0.5rem 1.25rem;
     border: none;
     border-radius: var(--radius-sm);
-    background-color: rgba(255, 255, 255, 0.9);
-    color: var(--color-success-bg-end);
+    background-color: var(--color-success-button-bg);
+    color: var(--color-success-button-text);
     font-weight: 700;
     cursor: pointer;
 }
