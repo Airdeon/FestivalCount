@@ -5,3 +5,4 @@ staticfiles/
 .venv/
 venv/
 .playwright-mcp/
+.superpowers/
