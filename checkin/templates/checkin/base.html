@@ -3,6 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script>
+        (function () {
+            try {
+                var stored = localStorage.getItem("theme");
+                if (stored === "light" || stored === "dark") {
+                    document.documentElement.setAttribute("data-theme", stored);
+                }
+            } catch (e) {
+                // localStorage indisponible (navigation privee stricte) : reste sur le theme par defaut.
+            }
+        })();
+    </script>
     <title>{% block title %}Festival Count{% endblock %}</title>
     <link rel="stylesheet" href="{% load static %}{% static 'checkin/css/base.css' %}">
 </head>
@@ -15,6 +27,7 @@
     </ul>
     {% endif %}
     {% if user.is_authenticated %}
+    <button type="button" class="theme-toggle" id="themeToggle" aria-label="Changer de theme">☀️</button>
     <form method="post" action="{% url 'checkin:logout' %}" class="logout-form">
         {% csrf_token %}
         <button type="submit">Se déconnecter</button>
@@ -23,5 +36,6 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+    <script src="{% static 'checkin/js/theme.js' %}" defer></script>
 </body>
 </html>
