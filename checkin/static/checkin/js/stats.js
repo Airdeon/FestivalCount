@@ -6,6 +6,37 @@
         return;
     }
 
+    function cssVar(name, fallback) {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        return value || fallback;
+    }
+
+    function chartColors() {
+        return {
+            text: cssVar("--color-text", "#1a1a1a"),
+            grid: cssVar("--color-surface-border", "#e5e7eb"),
+            accent: cssVar("--color-accent-solid", "#2563eb"),
+        };
+    }
+
+    function chartOptionsWithTheme(extra) {
+        const colors = chartColors();
+        return Object.assign(
+            {
+                responsive: true,
+                color: colors.text,
+                scales: {
+                    x: { ticks: { color: colors.text }, grid: { color: colors.grid } },
+                    y: { ticks: { color: colors.text }, grid: { color: colors.grid } },
+                },
+                plugins: {
+                    legend: { labels: { color: colors.text } },
+                },
+            },
+            extra || {}
+        );
+    }
+
     const statsDataUrl = keyFiguresEl.dataset.statsDataUrl;
     const editionId = keyFiguresEl.dataset.editionId;
     const isCurrentEdition = keyFiguresEl.dataset.isCurrent === "true";
@@ -17,18 +48,27 @@
         type: "bar",
         data: {
             labels: rankingData.map(function (row) { return row.origin__code; }),
-            datasets: [{ label: "Visiteurs", data: rankingData.map(function (row) { return row.nombre; }) }],
+            datasets: [{
+                label: "Visiteurs",
+                data: rankingData.map(function (row) { return row.nombre; }),
+                backgroundColor: chartColors().accent,
+            }],
         },
-        options: { indexAxis: "y", responsive: true },
+        options: chartOptionsWithTheme({ indexAxis: "y" }),
     });
 
     const evolutionChart = new Chart(document.getElementById("evolution-chart"), {
         type: "line",
         data: {
             labels: evolutionData.map(function (row) { return row.heure; }),
-            datasets: [{ label: "Enregistrements par heure", data: evolutionData.map(function (row) { return row.nombre; }) }],
+            datasets: [{
+                label: "Enregistrements par heure",
+                data: evolutionData.map(function (row) { return row.nombre; }),
+                borderColor: chartColors().accent,
+                backgroundColor: chartColors().accent,
+            }],
         },
-        options: { responsive: true },
+        options: chartOptionsWithTheme(),
     });
 
     function applyData(data) {
@@ -48,6 +88,25 @@
             window.updateMapColors(data.ranking);
         }
     }
+
+    function refreshChartTheme() {
+        const colors = chartColors();
+        [rankingChart, evolutionChart].forEach(function (chart) {
+            chart.options.color = colors.text;
+            chart.options.scales.x.ticks.color = colors.text;
+            chart.options.scales.x.grid.color = colors.grid;
+            chart.options.scales.y.ticks.color = colors.text;
+            chart.options.scales.y.grid.color = colors.grid;
+            chart.options.plugins.legend.labels.color = colors.text;
+            chart.data.datasets[0].backgroundColor = colors.accent;
+            if (chart.data.datasets[0].borderColor) {
+                chart.data.datasets[0].borderColor = colors.accent;
+            }
+            chart.update();
+        });
+    }
+
+    document.addEventListener("themechange", refreshChartTheme);
 
     if (isCurrentEdition) {
         window.setInterval(function () {

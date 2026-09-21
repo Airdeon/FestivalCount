@@ -6,15 +6,34 @@
         return;
     }
 
-    const COLOR_SCALE = ["#eef2ff", "#c7d2fe", "#818cf8", "#4f46e5", "#312e81"];
+    function cssVar(name, fallback) {
+        const value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+        return value || fallback;
+    }
+
+    function hexToRgb(hex) {
+        const clean = hex.replace("#", "").trim();
+        const bigint = parseInt(clean, 16);
+        return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+    }
+
+    function interpolateColor(hexStart, hexEnd, ratio) {
+        const start = hexToRgb(hexStart);
+        const end = hexToRgb(hexEnd);
+        const mixed = start.map(function (channel, index) {
+            return Math.round(channel + (end[index] - channel) * ratio);
+        });
+        return "rgb(" + mixed.join(",") + ")";
+    }
 
     function colorForCount(count, maxCount) {
         if (count === 0 || maxCount === 0) {
-            return "#f3f4f6";
+            return cssVar("--color-map-empty", "#e2e8f0");
         }
         const ratio = count / maxCount;
-        const index = Math.min(COLOR_SCALE.length - 1, Math.floor(ratio * COLOR_SCALE.length));
-        return COLOR_SCALE[index];
+        const low = cssVar("--color-map-low", "#93c5fd");
+        const high = cssVar("--color-map-high", "#1d4ed8");
+        return interpolateColor(low, high, ratio);
     }
 
     function findDepartmentPath(svg, code) {
@@ -33,8 +52,8 @@
         const maxCount = Math.max(0, ...Object.values(counts));
 
         svg.querySelectorAll("path").forEach(function (path) {
-            path.setAttribute("fill", "#f3f4f6");
-            path.setAttribute("stroke", "#9ca3af");
+            path.setAttribute("fill", cssVar("--color-map-empty", "#e2e8f0"));
+            path.setAttribute("stroke", cssVar("--color-surface-border", "#9ca3af"));
             path.setAttribute("stroke-width", "0.5");
         });
 
@@ -57,6 +76,7 @@
     }
 
     let svgRoot = null;
+    let lastRanking = [];
 
     fetch(mapContainer.dataset.svgUrl)
         .then(function (response) {
@@ -65,13 +85,20 @@
         .then(function (svgText) {
             mapContainer.innerHTML = svgText;
             svgRoot = mapContainer.querySelector("svg");
-            const initialRanking = JSON.parse(document.getElementById("ranking-data").textContent);
-            applyColors(svgRoot, initialRanking);
+            lastRanking = JSON.parse(document.getElementById("ranking-data").textContent);
+            applyColors(svgRoot, lastRanking);
         });
 
     window.updateMapColors = function (ranking) {
+        lastRanking = ranking;
         if (svgRoot) {
             applyColors(svgRoot, ranking);
         }
     };
+
+    document.addEventListener("themechange", function () {
+        if (svgRoot) {
+            applyColors(svgRoot, lastRanking);
+        }
+    });
 })();
