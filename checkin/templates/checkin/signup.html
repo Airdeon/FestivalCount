@@ -1,10 +1,12 @@
 {% extends "checkin/base.html" %}
 {% block title %}Créer un compte — Festival Count{% endblock %}
 {% block content %}
-<h1>Créer un compte</h1>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Créer mon compte</button>
-</form>
+<div class="page-card">
+    <h1>Créer un compte</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Créer mon compte</button>
+    </form>
+</div>
 {% endblock %}

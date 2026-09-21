@@ -1,18 +1,24 @@
 {% extends "checkin/base.html" %}
 {% block title %}Éditions — {{ request.festival.nom }}{% endblock %}
 {% block content %}
+<div class="page-content">
 <h1>{{ request.festival.nom }} — Éditions</h1>
 
-<ul>
+<ul class="simple-list">
     {% for edition in editions %}
-    <li>{{ edition.nom }} ({{ edition.date_debut }} – {{ edition.date_fin }}){% if edition.est_active %} — en cours{% endif %}</li>
+    <li>
+        <span>{{ edition.nom }} ({{ edition.date_debut }} – {{ edition.date_fin }}){% if edition.est_active %} — en cours{% endif %}</span>
+    </li>
     {% endfor %}
 </ul>
 
-<h2>Créer une nouvelle édition</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Créer</button>
-</form>
+<div class="form-section">
+    <h2 class="panel-title">Créer une nouvelle édition</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Créer</button>
+    </form>
+</div>
+</div>
 {% endblock %}

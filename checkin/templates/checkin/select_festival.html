@@ -1,9 +1,10 @@
 {% extends "checkin/base.html" %}
 {% block title %}Mes festivals — Festival Count{% endblock %}
 {% block content %}
+<div class="page-content">
 <h1>Mes festivals</h1>
 {% if memberships %}
-<ul class="festival-list">
+<ul class="simple-list">
     {% for membership in memberships %}
     <li>
         <a href="{% if membership.role == 'organisateur' %}{% url 'checkin:stats' festival_slug=membership.festival.slug %}{% else %}{% url 'checkin:register' festival_slug=membership.festival.slug %}{% endif %}">
@@ -18,4 +19,5 @@
 
 <p><a href="{% url 'checkin:festival_create' %}">Créer un festival</a></p>
 <p><a href="{% url 'checkin:festival_search' %}">Rejoindre un festival</a></p>
+</div>
 {% endblock %}

@@ -1,30 +1,33 @@
 {% extends "checkin/base.html" %}
 {% block title %}Bénévoles — {{ request.festival.nom }}{% endblock %}
 {% block content %}
+<div class="page-content">
 <h1>{{ request.festival.nom }} — Bénévoles</h1>
 
-<h2>Demandes en attente</h2>
-<ul>
+<h2 class="panel-title">Demandes en attente</h2>
+<ul class="simple-list">
     {% for membership_request in pending_requests %}
     <li>
-        {{ membership_request.user.username }}
-        <form method="post" action="{% url 'checkin:membership_request_accept' festival_slug=request.festival.slug request_id=membership_request.id %}" style="display:inline">
-            {% csrf_token %}
-            <button type="submit">Accepter</button>
-        </form>
-        <form method="post" action="{% url 'checkin:membership_request_reject' festival_slug=request.festival.slug request_id=membership_request.id %}" style="display:inline">
-            {% csrf_token %}
-            <button type="submit">Refuser</button>
-        </form>
+        <span>{{ membership_request.user.username }}</span>
+        <span>
+            <form method="post" action="{% url 'checkin:membership_request_accept' festival_slug=request.festival.slug request_id=membership_request.id %}" style="display:inline">
+                {% csrf_token %}
+                <button type="submit">Accepter</button>
+            </form>
+            <form method="post" action="{% url 'checkin:membership_request_reject' festival_slug=request.festival.slug request_id=membership_request.id %}" style="display:inline">
+                {% csrf_token %}
+                <button type="submit">Refuser</button>
+            </form>
+        </span>
     </li>
     {% endfor %}
 </ul>
 
-<h2>Bénévoles</h2>
-<ul>
+<h2 class="panel-title">Bénévoles</h2>
+<ul class="simple-list">
     {% for membership in memberships %}
     <li>
-        {{ membership.user.username }}
+        <span>{{ membership.user.username }}</span>
         <form method="post" action="{% url 'checkin:volunteer_remove' festival_slug=request.festival.slug membership_id=membership.id %}" style="display:inline">
             {% csrf_token %}
             <button type="submit">Retirer l'accès</button>
@@ -33,10 +36,13 @@
     {% endfor %}
 </ul>
 
-<h2>Créer un compte bénévole</h2>
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Créer</button>
-</form>
+<div class="form-section">
+    <h2 class="panel-title">Créer un compte bénévole</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Créer</button>
+    </form>
+</div>
+</div>
 {% endblock %}

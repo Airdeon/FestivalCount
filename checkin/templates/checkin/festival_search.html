@@ -1,20 +1,23 @@
 {% extends "checkin/base.html" %}
 {% block title %}Rejoindre un festival — Festival Count{% endblock %}
 {% block content %}
+<div class="page-content">
 <h1>Rejoindre un festival</h1>
-<form method="get">
-    <input type="text" name="q" value="{{ query }}" placeholder="Nom du festival">
-    <button type="submit">Rechercher</button>
-</form>
+<div class="form-section">
+    <form method="get">
+        <input type="text" name="q" value="{{ query }}" placeholder="Nom du festival">
+        <button type="submit">Rechercher</button>
+    </form>
+</div>
 
-<ul>
+<ul class="simple-list">
     {% for result in results %}
     <li>
-        {{ result.festival.nom }}
+        <span>{{ result.festival.nom }}</span>
         {% if result.pending %}
         <span>Demande envoyée</span>
         {% else %}
-        <form method="post" action="{% url 'checkin:membership_request_create' festival_slug=result.festival.slug %}" style="display:inline">
+        <form method="post" action="{% url 'checkin:membership_request_create' festival_slug=result.festival.slug %}">
             {% csrf_token %}
             <input type="hidden" name="q" value="{{ query }}">
             <button type="submit">Demander à rejoindre</button>
@@ -23,4 +26,5 @@
     </li>
     {% endfor %}
 </ul>
+</div>
 {% endblock %}
