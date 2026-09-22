@@ -38,7 +38,10 @@ def signup(request):
 @login_required
 def select_festival(request):
     memberships = Membership.objects.filter(user=request.user).select_related("festival")
-    if memberships.count() == 1:
+    # "all=1" lets in-app links (the "<- Mes festivals" back link) force the real list
+    # page even for a single-membership user, instead of bouncing straight back to their
+    # only festival - the shortcut below is only for the plain post-login landing.
+    if memberships.count() == 1 and request.GET.get("all") != "1":
         membership = memberships.first()
         target_view = "checkin:stats" if membership.role == Membership.ROLE_ORGANISATEUR else "checkin:register"
         return redirect(target_view, festival_slug=membership.festival.slug)
@@ -228,7 +231,8 @@ def festival_search(request):
             for festival in festivals
         ]
 
-    return render(request, "checkin/festival_search.html", {"query": query, "results": results})
+    context = {"query": query, "results": results}
+    return render(request, "checkin/festival_search.html", context)
 
 
 @require_POST

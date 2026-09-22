@@ -1,7 +1,7 @@
 {% extends "checkin/base.html" %}
 {% block title %}Créer un festival — Festival Count{% endblock %}
 {% block back_link %}
-<a href="{% url 'checkin:select_festival' %}" class="nav-back">← Mes festivals</a>
+<a href="{% url 'checkin:select_festival' %}?all=1" class="nav-back">← Mes festivals</a>
 {% endblock %}
 {% block content %}
 <div class="page-card">

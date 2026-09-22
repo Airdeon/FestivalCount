@@ -208,7 +208,7 @@ def test_festival_create_shows_back_link_to_select_festival(client, django_user_
     response = client.get(reverse("checkin:festival_create"))
 
     assert response.status_code == 200
-    assert reverse("checkin:select_festival") in response.content.decode()
+    assert reverse("checkin:select_festival") + "?all=1" in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -219,4 +219,4 @@ def test_festival_search_shows_back_link_to_select_festival(client, django_user_
     response = client.get(reverse("checkin:festival_search"))
 
     assert response.status_code == 200
-    assert reverse("checkin:select_festival") in response.content.decode()
+    assert reverse("checkin:select_festival") + "?all=1" in response.content.decode()

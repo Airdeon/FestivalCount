@@ -184,7 +184,9 @@ def test_signup_page_shows_back_link_to_login(client):
 
 
 @pytest.mark.django_db
-def test_register_shows_back_link_to_select_festival(client, django_user_model):
+def test_register_shows_back_link_even_with_a_single_festival(client, django_user_model):
+    # select_festival auto-redirects a single-membership user straight back to this page,
+    # so the link must carry ?all=1 to bypass that shortcut instead of looping.
     festival = Festival.objects.create(nom="Festival A", slug="festival-a")
     user = django_user_model.objects.create_user(username="alice", password="pass12345")
     Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_BENEVOLE)
@@ -193,7 +195,20 @@ def test_register_shows_back_link_to_select_festival(client, django_user_model):
     response = client.get(reverse("checkin:register", kwargs={"festival_slug": festival.slug}))
 
     assert response.status_code == 200
-    assert reverse("checkin:select_festival") in response.content.decode()
+    assert reverse("checkin:select_festival") + "?all=1" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_select_festival_all_param_bypasses_single_membership_redirect(client, django_user_model):
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_BENEVOLE)
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:select_festival"), {"all": "1"})
+
+    assert response.status_code == 200
+    assert "Festival A" in response.content.decode()
 
 
 @pytest.mark.django_db
