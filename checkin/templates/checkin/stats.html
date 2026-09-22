@@ -7,8 +7,14 @@
 {% block content %}
 <h1>{{ request.festival.nom }} — Statistiques</h1>
 
+<nav class="hub-links">
+    <a href="{% url 'checkin:edition_list' festival_slug=request.festival.slug %}" class="hub-link">Éditions</a>
+    <a href="{% url 'checkin:volunteer_list' festival_slug=request.festival.slug %}" class="hub-link">Bénévoles</a>
+    <a href="{% url 'checkin:register' festival_slug=request.festival.slug %}" class="hub-link">Enregistrement</a>
+</nav>
+
 {% if not editions %}
-<p>Aucune édition pour ce festival.</p>
+<p class="no-active-edition">Aucune édition pour ce festival.</p>
 {% else %}
 <form method="get" id="edition-selector-form" class="edition-selector">
     <label for="edition-selector">Édition :</label>

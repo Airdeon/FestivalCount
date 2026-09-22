@@ -17,7 +17,9 @@
 <p>Vous n'avez accès à aucun festival pour le moment.</p>
 {% endif %}
 
-<p><a href="{% url 'checkin:festival_create' %}">Créer un festival</a></p>
-<p><a href="{% url 'checkin:festival_search' %}">Rejoindre un festival</a></p>
+<div class="action-links">
+    <a href="{% url 'checkin:festival_create' %}" class="action-button">Créer un festival</a>
+    <a href="{% url 'checkin:festival_search' %}" class="action-button">Rejoindre un festival</a>
+</div>
 </div>
 {% endblock %}
