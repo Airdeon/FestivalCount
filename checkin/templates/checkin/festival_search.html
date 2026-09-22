@@ -1,5 +1,8 @@
 {% extends "checkin/base.html" %}
 {% block title %}Rejoindre un festival — Festival Count{% endblock %}
+{% block back_link %}
+<a href="{% url 'checkin:select_festival' %}" class="nav-back">← Mes festivals</a>
+{% endblock %}
 {% block content %}
 <div class="page-content">
 <h1>Rejoindre un festival</h1>

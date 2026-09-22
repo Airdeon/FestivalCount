@@ -1,5 +1,8 @@
 {% extends "checkin/base.html" %}
 {% block title %}Créer un compte — Festival Count{% endblock %}
+{% block back_link %}
+<a href="{% url 'checkin:login' %}" class="nav-back">← Connexion</a>
+{% endblock %}
 {% block content %}
 <div class="page-card">
     <h1>Créer un compte</h1>

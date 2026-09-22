@@ -494,3 +494,19 @@ main {
     font-weight: 700;
     cursor: pointer;
 }
+
+.nav-back {
+    position: fixed;
+    top: 0.75rem;
+    left: 0.75rem;
+    z-index: 10;
+    display: inline-block;
+    padding: 0.6rem 1rem;
+    border-radius: var(--radius-sm);
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 700;
+    box-shadow: var(--shadow-card);
+    transition: var(--transition-theme);
+}

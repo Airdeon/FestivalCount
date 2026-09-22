@@ -80,3 +80,16 @@ def test_stats_ranking_includes_percentage_relative_to_max(client, django_user_m
     content = response.content.decode()
     assert "width: 100%" in content
     assert "width: 50%" in content
+
+
+@pytest.mark.django_db
+def test_stats_shows_back_link_to_select_festival(client, django_user_model):
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_ORGANISATEUR)
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:stats", kwargs={"festival_slug": festival.slug}))
+
+    assert response.status_code == 200
+    assert reverse("checkin:select_festival") in response.content.decode()

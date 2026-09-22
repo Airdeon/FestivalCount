@@ -1,5 +1,8 @@
 {% extends "checkin/base.html" %}
 {% block title %}Bénévoles — {{ request.festival.nom }}{% endblock %}
+{% block back_link %}
+<a href="{% url 'checkin:stats' festival_slug=request.festival.slug %}" class="nav-back">← Statistiques</a>
+{% endblock %}
 {% block content %}
 <div class="page-content">
 <h1>{{ request.festival.nom }} — Bénévoles</h1>

@@ -198,3 +198,25 @@ def test_festival_create_handles_race_condition(client, django_user_model):
     assert Festival.objects.count() == 1
     # Verify the organizer membership was created
     assert Membership.objects.filter(user=user, role=Membership.ROLE_ORGANISATEUR).count() == 1
+
+
+@pytest.mark.django_db
+def test_festival_create_shows_back_link_to_select_festival(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="pass12345")
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:festival_create"))
+
+    assert response.status_code == 200
+    assert reverse("checkin:select_festival") in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_festival_search_shows_back_link_to_select_festival(client, django_user_model):
+    django_user_model.objects.create_user(username="alice", password="pass12345")
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:festival_search"))
+
+    assert response.status_code == 200
+    assert reverse("checkin:select_festival") in response.content.decode()

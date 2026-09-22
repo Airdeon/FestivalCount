@@ -64,3 +64,16 @@ def test_edition_list_rejects_end_date_before_start_date(client, django_user_mod
 
     assert response.status_code == 200
     assert not Edition.objects.filter(nom="Édition invalide").exists()
+
+
+@pytest.mark.django_db
+def test_edition_list_shows_back_link_to_stats(client, django_user_model):
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_ORGANISATEUR)
+    client.login(username="alice", password="pass12345")
+
+    response = client.get(reverse("checkin:edition_list", kwargs={"festival_slug": festival.slug}))
+
+    assert response.status_code == 200
+    assert reverse("checkin:stats", kwargs={"festival_slug": festival.slug}) in response.content.decode()

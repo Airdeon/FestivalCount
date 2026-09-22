@@ -1,6 +1,9 @@
 {% extends "checkin/base.html" %}
 {% load static %}
 {% block title %}Enregistrement — {{ request.festival.nom }}{% endblock %}
+{% block back_link %}
+<a href="{% url 'checkin:select_festival' %}" class="nav-back">← Mes festivals</a>
+{% endblock %}
 {% block content %}
 <h1>{{ request.festival.nom }}</h1>
 
