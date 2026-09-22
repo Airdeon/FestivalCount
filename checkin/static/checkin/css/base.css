@@ -9,6 +9,7 @@
 :root,
 [data-theme="dark"] {
     --color-bg: radial-gradient(circle at 20% -10%, #1f2937 0%, #0b0d14 55%);
+    --color-bg-solid: #0b0d14;
     --color-text: #e5e7eb;
     --color-text-muted: #9ca3af;
 
@@ -42,6 +43,7 @@
 
 [data-theme="light"] {
     --color-bg: #eef1f6;
+    --color-bg-solid: #eef1f6;
     --color-text: #0f172a;
     --color-text-muted: #64748b;
 
@@ -396,7 +398,7 @@ main {
     padding: 0.65rem 0.75rem;
     border-radius: var(--radius-sm);
     border: 1px solid var(--color-surface-border);
-    background-color: var(--color-bg);
+    background-color: var(--color-bg-solid);
     color: var(--color-text);
 }
 
@@ -477,7 +479,7 @@ main {
     padding: 0.6rem 0.75rem;
     border-radius: var(--radius-sm);
     border: 1px solid var(--color-surface-border);
-    background-color: var(--color-bg);
+    background-color: var(--color-bg-solid);
     color: var(--color-text);
     margin-bottom: 0.5rem;
 }

@@ -41,21 +41,7 @@
     const editionId = keyFiguresEl.dataset.editionId;
     const isCurrentEdition = keyFiguresEl.dataset.isCurrent === "true";
 
-    const rankingData = JSON.parse(document.getElementById("ranking-data").textContent);
     const evolutionData = JSON.parse(document.getElementById("evolution-data").textContent);
-
-    const rankingChart = new Chart(document.getElementById("ranking-chart"), {
-        type: "bar",
-        data: {
-            labels: rankingData.map(function (row) { return row.origin__code; }),
-            datasets: [{
-                label: "Visiteurs",
-                data: rankingData.map(function (row) { return row.nombre; }),
-                backgroundColor: chartColors().accent,
-            }],
-        },
-        options: chartOptionsWithTheme({ indexAxis: "y" }),
-    });
 
     const evolutionChart = new Chart(document.getElementById("evolution-chart"), {
         type: "line",
@@ -76,10 +62,6 @@
         document.getElementById("total-departements").textContent = data.key_figures.nombre_departements;
         document.getElementById("total-pays").textContent = data.key_figures.nombre_pays;
 
-        rankingChart.data.labels = data.ranking.map(function (row) { return row.origin__code; });
-        rankingChart.data.datasets[0].data = data.ranking.map(function (row) { return row.nombre; });
-        rankingChart.update();
-
         evolutionChart.data.labels = data.hourly_evolution.map(function (row) { return row.heure; });
         evolutionChart.data.datasets[0].data = data.hourly_evolution.map(function (row) { return row.nombre; });
         evolutionChart.update();
@@ -91,19 +73,17 @@
 
     function refreshChartTheme() {
         const colors = chartColors();
-        [rankingChart, evolutionChart].forEach(function (chart) {
-            chart.options.color = colors.text;
-            chart.options.scales.x.ticks.color = colors.text;
-            chart.options.scales.x.grid.color = colors.grid;
-            chart.options.scales.y.ticks.color = colors.text;
-            chart.options.scales.y.grid.color = colors.grid;
-            chart.options.plugins.legend.labels.color = colors.text;
-            chart.data.datasets[0].backgroundColor = colors.accent;
-            if (chart.data.datasets[0].borderColor) {
-                chart.data.datasets[0].borderColor = colors.accent;
-            }
-            chart.update();
-        });
+        evolutionChart.options.color = colors.text;
+        evolutionChart.options.scales.x.ticks.color = colors.text;
+        evolutionChart.options.scales.x.grid.color = colors.grid;
+        evolutionChart.options.scales.y.ticks.color = colors.text;
+        evolutionChart.options.scales.y.grid.color = colors.grid;
+        evolutionChart.options.plugins.legend.labels.color = colors.text;
+        evolutionChart.data.datasets[0].backgroundColor = colors.accent;
+        if (evolutionChart.data.datasets[0].borderColor) {
+            evolutionChart.data.datasets[0].borderColor = colors.accent;
+        }
+        evolutionChart.update();
     }
 
     document.addEventListener("themechange", refreshChartTheme);
