@@ -99,16 +99,26 @@ def visit_create(request, festival_slug):
     if origin is None:
         return JsonResponse({"error": "Origine inconnue."}, status=400)
 
+    count = payload.get("count", 1)
+    if not isinstance(count, int) or isinstance(count, bool) or count < 1 or count > 10:
+        return JsonResponse({"error": "Nombre invalide."}, status=400)
+
     precision_libre = payload.get("precision_libre") or ""
 
-    visit = Visit.objects.create(
-        edition=edition,
-        origin=origin,
-        enregistre_par=request.user,
-        precision_libre=precision_libre,
-    )
+    visits = [
+        Visit.objects.create(
+            edition=edition,
+            origin=origin,
+            enregistre_par=request.user,
+            precision_libre=precision_libre,
+        )
+        for _ in range(count)
+    ]
 
-    return JsonResponse({"id": visit.id, "origin_nom": origin.nom}, status=201)
+    return JsonResponse(
+        {"id": visits[0].id, "ids": [visit.id for visit in visits], "origin_nom": origin.nom},
+        status=201,
+    )
 
 
 @require_POST

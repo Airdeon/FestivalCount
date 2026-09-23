@@ -33,6 +33,70 @@ def test_visit_create_records_a_visit(client, django_user_model):
 
 
 @pytest.mark.django_db
+def test_visit_create_with_count_creates_multiple_visits(client, django_user_model):
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    today = datetime.date.today()
+    Edition.objects.create(festival=festival, nom="Édition 2026", date_debut=today, date_fin=today)
+    origin = Origin.objects.get(code="75")
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_BENEVOLE)
+    client.login(username="alice", password="pass12345")
+
+    response = client.post(
+        reverse("checkin:visit_create", kwargs={"festival_slug": festival.slug}),
+        data=json.dumps({"origin_code": "75", "count": 5}),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+    assert len(data["ids"]) == 5
+    assert data["id"] == data["ids"][0]
+    assert len(set(data["ids"])) == 5
+    assert Visit.objects.filter(origin=origin).count() == 5
+
+
+@pytest.mark.django_db
+def test_visit_create_without_count_still_returns_matching_id_and_ids(client, django_user_model):
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    today = datetime.date.today()
+    Edition.objects.create(festival=festival, nom="Édition 2026", date_debut=today, date_fin=today)
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_BENEVOLE)
+    client.login(username="alice", password="pass12345")
+
+    response = client.post(
+        reverse("checkin:visit_create", kwargs={"festival_slug": festival.slug}),
+        data=json.dumps({"origin_code": "75"}),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 201
+    data = response.json()
+    assert data["ids"] == [data["id"]]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("bad_count", [0, 11, -1, "abc", 3.5, True])
+def test_visit_create_rejects_invalid_count(client, django_user_model, bad_count):
+    festival = Festival.objects.create(nom="Festival A", slug="festival-a")
+    today = datetime.date.today()
+    Edition.objects.create(festival=festival, nom="Édition 2026", date_debut=today, date_fin=today)
+    user = django_user_model.objects.create_user(username="alice", password="pass12345")
+    Membership.objects.create(user=user, festival=festival, role=Membership.ROLE_BENEVOLE)
+    client.login(username="alice", password="pass12345")
+
+    response = client.post(
+        reverse("checkin:visit_create", kwargs={"festival_slug": festival.slug}),
+        data=json.dumps({"origin_code": "75", "count": bad_count}),
+        content_type="application/json",
+    )
+
+    assert response.status_code == 400
+    assert Visit.objects.count() == 0
+
+
+@pytest.mark.django_db
 def test_visit_create_stores_precision_libre_for_autre(client, django_user_model):
     festival = Festival.objects.create(nom="Festival A", slug="festival-a")
     today = datetime.date.today()
