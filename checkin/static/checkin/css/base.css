@@ -167,7 +167,8 @@ body {
 
 main > h1,
 #screen-groups h2,
-#screen-origins h2 {
+#screen-origins h2,
+#screen-group-count h2 {
     padding: 0 1rem;
 }
 

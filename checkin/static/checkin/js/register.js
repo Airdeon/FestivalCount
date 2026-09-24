@@ -172,7 +172,7 @@
     }
 
     function showConfirmation(originNom, ids, count) {
-        lastVisitIds = ids;
+        lastVisitIds = Array.isArray(ids) ? ids : [];
         confirmationText.textContent =
             count > 1 ? count + " × " + originNom + " enregistrés ✓" : originNom + " enregistré ✓";
         confirmationEl.hidden = false;

@@ -5,7 +5,7 @@ from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -105,15 +105,16 @@ def visit_create(request, festival_slug):
 
     precision_libre = payload.get("precision_libre") or ""
 
-    visits = [
-        Visit.objects.create(
-            edition=edition,
-            origin=origin,
-            enregistre_par=request.user,
-            precision_libre=precision_libre,
-        )
-        for _ in range(count)
-    ]
+    with transaction.atomic():
+        visits = [
+            Visit.objects.create(
+                edition=edition,
+                origin=origin,
+                enregistre_par=request.user,
+                precision_libre=precision_libre,
+            )
+            for _ in range(count)
+        ]
 
     return JsonResponse(
         {"id": visits[0].id, "ids": [visit.id for visit in visits], "origin_nom": origin.nom},
