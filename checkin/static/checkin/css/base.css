@@ -207,7 +207,48 @@ main > h1,
     cursor: not-allowed;
 }
 
-#back-button {
+.origin-unit {
+    display: flex;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: var(--shadow-button);
+}
+
+.origin-unit .origin-button {
+    flex: 1;
+    border-radius: 0;
+    box-shadow: none;
+    font-size: 1.15rem;
+}
+
+.origin-group-button {
+    width: 46px;
+    min-height: 88px;
+    border: none;
+    border-left: 1px solid rgba(255, 255, 255, 0.25);
+    background: var(--color-accent-end);
+    color: var(--color-accent-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: var(--transition-interactive);
+}
+
+.origin-group-button:active {
+    transform: scale(0.96);
+}
+
+.origin-group-button:disabled {
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    cursor: not-allowed;
+}
+
+#back-button,
+.back-button {
     min-height: 56px;
     font-size: 1.1rem;
     margin: 1rem;
